@@ -1,13 +1,12 @@
 #include "search_engine.h"
 
 
-void search(Position pos, int depth) {
-    SearchContext search = { .stop = false };
-
+void start_search(Position pos, SearchContext *search, int depth) {
+    atomic_store_explicit(&search->stop, false, memory_order_relaxed);
 
     ThreadContext thread = { .nodes = 0 };
     Move bestmove;
-    int value = negamax(pos, &search, &thread, depth, &bestmove);
+    int value = negamax(pos, search, &thread, depth, &bestmove);
 
     if (value != -2147483648)
     {
@@ -19,4 +18,9 @@ void search(Position pos, int depth) {
     {
         printf("Search did not succeed\n");
     }
+}
+
+
+void stop_search(SearchContext *search) {
+    atomic_store_explicit(&search->stop, true, memory_order_relaxed);
 }

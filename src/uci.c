@@ -56,7 +56,7 @@ Move parse_move(Position pos, char* move_token) {
     return (Move)0;
 }
 
-void command_go(Position pos, char* go_options) {
+void command_go(Position pos, SearchContext *search, char* go_options) {
     int depth = 1;
 
     char *token = strtok(go_options, " ");
@@ -70,7 +70,7 @@ void command_go(Position pos, char* go_options) {
         }
     }
 
-    search(pos, depth);
+    start_search(pos, search, depth);
 }
 
 void command_uci() {
@@ -90,11 +90,18 @@ void command_ucinewgame(Position *pos) {
 }
 
 
+void command_stop(SearchContext *search) {
+    stop_search(search);
+}
+
+
 void main_loop() {
     char line[2048];
 
     Position pos;
     set_start_position(&pos);
+
+    SearchContext search;
 
     while (fgets(line, sizeof(line), stdin) != NULL)
     {
@@ -124,9 +131,13 @@ void main_loop() {
         }
 
         if (strncmp(line, "go", 2) == 0) {
-            command_go(pos, line + 3);
+            command_go(pos, &search, line + 3);
             continue;
         }
 
+        if (strncmp(line, "stop", 4) == 0) {
+            command_stop(&search);
+            continue;
+        }
     }
 }

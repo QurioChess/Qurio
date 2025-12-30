@@ -2,7 +2,7 @@
 
 int negamax(Position pos, SearchContext *search, ThreadContext *thread, int depth, Move *best_move)
 {
-    if (search->stop)
+    if (atomic_load_explicit(&search->stop, memory_order_relaxed))
     {
         return -2147483648;
     }

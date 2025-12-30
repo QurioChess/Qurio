@@ -24,8 +24,8 @@ void main_loop();
 
 void command_position(Position *pos, char* position_options);
 Move parse_move(Position pos, char* move);
-void command_go(Position pos, char* go_options);
-void command_stop();
+void command_go(Position pos, SearchContext *search, char* go_options);
+void command_stop(SearchContext *search);
 void command_uci();
 void command_ucinewgame(Position *pos);
 void command_isready();

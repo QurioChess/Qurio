@@ -1,10 +1,10 @@
 #pragma once
 
 #include <stdint.h>
-#include <stdbool.h>
+#include <stdatomic.h>
 
 typedef struct {
-    volatile bool stop;
+    atomic_bool stop;
 } SearchContext;
 
 typedef struct {

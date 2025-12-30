@@ -7,4 +7,5 @@
 #include "search_context.h"
 
 
-void search(Position pos, int depth);
+void start_search(Position pos, SearchContext *search, int depth);
+void stop_search(SearchContext *search);
