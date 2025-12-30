@@ -13,8 +13,8 @@ The following fundamental features are planned or in development:
 | Board representation       | In progress    |
 | Move generation            | In progress    |
 | Make/unmake move           | In progress    |
-| Static evaluation          | Planned        |
-| Negamax search             | Planned        |
+| Static evaluation          | In progress    |
+| Negamax search             | In progress    |
 ---
 
 ## Planned search features

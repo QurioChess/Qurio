@@ -5,22 +5,8 @@
 #include "board.h"
 #include "movegen.h"
 #include "move.h"
-
-
-void printBits(int n) {
-    unsigned int mask = 1 << (sizeof(int) * 8 - 1); // Mask with only the highest bit set
-    for (int i = 0; i < sizeof(int) * 8; i++) {
-        // Print 1 or 0 depending on whether the current bit is set
-        printf("%d", (n & mask) ? 1 : 0);
-        n <<= 1; // Shift left to check the next bit
-        // Optional: add a space every 8 bits for readability
-        if ((i + 1) % 8 == 0) {
-            printf(" ");
-        }
-    }
-    printf("\n");
-}
-
+#include "search_engine.h"
+#include "uci.h"
 
 U64 perft(Position pos, int depth) {
     MoveList move_list = { .count = 0 };
@@ -29,22 +15,12 @@ U64 perft(Position pos, int depth) {
     if (depth == 0) return 1ULL;
 
     generate_pseudo_legals(pos, &move_list);
-
-    // printf("At depth (%i):\n", depth);
-    // print_move_list(move_list);
-
     for (int i = 0; i < move_list.count; i++)
     {
-        Position prev_pos = pos;
-        make_move(&pos, move_list.moves[i]);
-        if (!is_in_check(pos, pos.side ^ 1))
-        {
-            nodes += perft(pos, depth - 1);
-        }
-        // printf("Going down to move: ");
-        // print_move(move_list.moves[i]);
-        // printf("\n");
-        pos = prev_pos;                
+        Position next_pos = pos;
+        make_move(&next_pos, move_list.moves[i]);
+        if (is_in_check(next_pos, next_pos.side ^ 1)) continue;
+        nodes += perft(next_pos, depth - 1);             
     }
     return nodes; 
 }
@@ -59,19 +35,15 @@ void divide_perft(Position pos, int depth)  {
     generate_pseudo_legals(pos, &move_list);
     for (int i = 0; i < move_list.count; i++)
     {
-        Position prev_pos = pos;
-        make_move(&pos, move_list.moves[i]);
+        Position next_pos = pos;
+        make_move(&next_pos, move_list.moves[i]);
+        if (is_in_check(next_pos, next_pos.side ^ 1)) continue;
+        
+        U64 subnodes = perft(next_pos, depth - 1);
+        print_move(move_list.moves[i]);
+        printf(": %" PRIu64 "\n", subnodes);
+        nodes += subnodes;
 
-        if (!is_in_check(pos, pos.side ^ 1))
-        {
-            U64 subnodes = perft(pos, depth - 1);
-
-            // printf("(%i): ", i);
-            print_move(move_list.moves[i]);
-            printf(": %" PRIu8 "\n", subnodes);
-            nodes += subnodes;
-        }
-        pos = prev_pos;
     }
 
     clock_t end = clock();
@@ -82,7 +54,7 @@ void divide_perft(Position pos, int depth)  {
     printf("Time taken: %.3f ms\n", time_taken_ms);
 
     if (time_taken_ms > 0) {
-        double nps = nodes / (time_taken_ms / 1000.0); // nodes per second
+        double nps = (double)nodes / (time_taken_ms / 1000.0); // nodes per second
         printf("NPS: %.0f\n", nps);
     } else {
         printf("Time too short to calculate NPS accurately.\n");
@@ -93,18 +65,18 @@ void divide_perft(Position pos, int depth)  {
 
 
 int main() {
-    printf("Qurio - Chess engine\n");
+    // printf("Qurio - Chess engine\n");
 
 
-    printf("Size of Position struct: %zu bytes\n", sizeof(Position));
+    // printf("Size of Position struct: %zu bytes\n", sizeof(Position));
 
-    printf("Offset of pieces: %zu bytes\n", offsetof(Position, pieces));
-    printf("Offset of occ: %zu bytes\n", offsetof(Position, occ));
-    printf("Offset of side: %zu bytes\n", offsetof(Position, side));
-    printf("Offset of castling: %zu bytes\n", offsetof(Position, castling));
+    // printf("Offset of pieces: %zu bytes\n", offsetof(Position, pieces));
+    // printf("Offset of occ: %zu bytes\n", offsetof(Position, occ));
+    // printf("Offset of side: %zu bytes\n", offsetof(Position, side));
+    // printf("Offset of castling: %zu bytes\n", offsetof(Position, castling));
 
-    Position pos;
-    set_start_position(&pos);
+    // Position pos;
+    // set_start_position(&pos);
     // print_position_bitboard(pos);
 
     // printf("Piece on A1 (0): %i\n", get_piece_on(pos, 0));
@@ -227,8 +199,8 @@ int main() {
     // printf("1 << 62: %" PRIu64 "\n", (1ULL<<62));
     // printf("1 << 63: %" PRIu64 "\n", (1ULL<<63));
 
-    parse_fen(&pos, "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
-    print_position(pos);
+    // parse_fen(&pos, "8/7P/8/7K/2B5/8/8/k7 w - - 0 1");
+    // print_position(pos);
 
 
     // MoveList move_list = { .count = 0 };
@@ -271,7 +243,21 @@ int main() {
 
     // printf("Is in check?: %i", is_in_check(pos, pos.side ^ 1));
 
-    divide_perft(pos, 5);
+    // divide_perft(pos, 1);
+
+    // parse_fen(&pos, "8/7p/2p4P/2P5/N7/5pp1/r1k1p3/4K3 w - - 2 52");
+
+    // divide_perft(pos, 6);
+
+
+    // Move best_move;
+    // iterative_deepening(pos, 6, &best_move);
+    // printf("Best move: ");
+    // print_move(best_move);
+
+    // search(pos, 6);
+
+    main_loop();
 
     return 0;
 }

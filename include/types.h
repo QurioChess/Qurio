@@ -60,6 +60,16 @@ static inline Square pop_lsb(U64 *bb) {
     return idx;
 }
 
+static inline int count_bits(U64 bb) {
+    int count = 0;
+    while (bb)
+    {
+        bb &= bb - 1;
+        count++;
+    }
+    return count;    
+}
+
 static inline PieceType get_piece_type(Piece piece) {
     return piece % 6;
 }

@@ -1,0 +1,61 @@
+#include "negamax.h"
+
+int negamax(Position pos, SearchContext *search, ThreadContext *thread, int depth, Move *best_move)
+{
+    if (search->stop)
+    {
+        return -2147483648;
+    }
+    thread->nodes++;
+
+    if (depth == 0) return evaluate(pos);
+    
+    int legal_moves_count = 0;
+    MoveList move_list = { .count = 0 };
+    generate_pseudo_legals(pos, &move_list);
+
+    int best_value = -100000;
+    for (int i = 0; i < move_list.count; i++)
+    {
+        Position next_pos = pos;
+        make_move(&next_pos, move_list.moves[i]);
+        if (is_in_check(next_pos, next_pos.side ^ 1)) continue;
+        legal_moves_count++;
+
+        int value = -negamax(next_pos, search, thread, depth - 1, NULL);
+
+        if (value > best_value)
+        {
+            best_value = value;
+            if (best_move != NULL)
+            {
+                *best_move = move_list.moves[i];
+            }
+            
+        }
+    }
+
+    if (legal_moves_count == 0) {
+        if (is_in_check(pos, pos.side))
+        {
+            return -10000;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    return best_value;
+}
+
+
+// int iterative_deepening(Position pos, int depth, Move *best_move) {
+//     int value;
+//     for (int d = 1; d < depth + 1; d++)
+//     {
+//         value = negamax(pos, d, best_move);
+//         printf("Search at (%i): ", d); print_move(*best_move); printf("\n");
+//     }
+//     return value;
+// }

@@ -208,7 +208,7 @@ void parse_fen(Position *pos, char *fen) {
         }
         else
         {
-            Square sq = (rank * NFILES) + file;
+            Square sq = (Square)((rank * NFILES) + file);
             switch (c)
             {
             case 'P':
@@ -309,8 +309,8 @@ void parse_fen(Position *pos, char *fen) {
     }
     else {
         file = (*p++) - 'a';
-        rank = ((*p++) - '0') - 1;
-        pos->enpassant = (rank * NFILES) + file;
+        rank = ((*p++) - '1');
+        pos->enpassant = (Square)((rank * NFILES) + file);
     }
 
 

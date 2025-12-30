@@ -18,7 +18,7 @@ CFLAGS_COMMON := $(CSTD) -I$(INC_DIR) -Wall -Wextra -Wshadow -Wconversion
 CFLAGS_RELEASE := -O3 -march=native -flto -DNDEBUG
 
 # ===== Debug flags =====
-CFLAGS_DEBUG := -O0 -g -fsanitize=address,undefined
+CFLAGS_DEBUG := -O0 -g
 
 # ===== Link flags =====
 LDFLAGS := -flto -fuse-ld=lld
@@ -32,6 +32,7 @@ release: $(BIN)
 
 # ===== Debug build =====
 debug: CFLAGS := $(CFLAGS_COMMON) $(CFLAGS_DEBUG)
+debug: LDFLAGS :=
 debug: $(BIN)
 
 # ===== Build rules =====
