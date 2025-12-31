@@ -1,12 +1,23 @@
 #include "search_engine.h"
 
 
-void start_search(Position pos, SearchContext *search, int depth) {
+void start_search(Position pos, SearchContext *search, pthread_t *search_thread, int depth) {
     atomic_store_explicit(&search->stop, false, memory_order_relaxed);
 
-    ThreadContext thread = { .nodes = 0 };
     Move bestmove;
-    int value = negamax(pos, search, &thread, depth, &bestmove);
+    int value;
+
+    ThreadContext thread;
+
+    thread.pos = pos;
+    thread.search = search;
+    thread.nodes = 0ULL;
+    thread.best_move = &bestmove;
+    thread.value = &value;
+    thread.depth = depth;
+
+    // iterative_deepening(&thread);
+    pthread_create(search_thread, NULL, iterative_deepening, &thread);
 
     if (value != -2147483648)
     {
@@ -21,6 +32,6 @@ void start_search(Position pos, SearchContext *search, int depth) {
 }
 
 
-void stop_search(SearchContext *search) {
+void stop_search(SearchContext *search, pthread_t *search_thread) {
     atomic_store_explicit(&search->stop, true, memory_order_relaxed);
 }

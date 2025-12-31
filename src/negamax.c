@@ -1,8 +1,8 @@
 #include "negamax.h"
 
-int negamax(Position pos, SearchContext *search, ThreadContext *thread, int depth, Move *best_move)
+int negamax(Position pos, ThreadContext *thread, int depth, Move *best_move)
 {
-    if (atomic_load_explicit(&search->stop, memory_order_relaxed))
+    if (atomic_load_explicit(&thread->search->stop, memory_order_relaxed))
     {
         return -2147483648;
     }
@@ -22,7 +22,7 @@ int negamax(Position pos, SearchContext *search, ThreadContext *thread, int dept
         if (is_in_check(next_pos, next_pos.side ^ 1)) continue;
         legal_moves_count++;
 
-        int value = -negamax(next_pos, search, thread, depth - 1, NULL);
+        int value = -negamax(next_pos, thread, depth - 1, NULL);
 
         if (value > best_value)
         {
@@ -50,12 +50,19 @@ int negamax(Position pos, SearchContext *search, ThreadContext *thread, int dept
 }
 
 
-// int iterative_deepening(Position pos, int depth, Move *best_move) {
-//     int value;
-//     for (int d = 1; d < depth + 1; d++)
-//     {
-//         value = negamax(pos, d, best_move);
-//         printf("Search at (%i): ", d); print_move(*best_move); printf("\n");
-//     }
-//     return value;
-// }
+void* iterative_deepening(void *arg) {
+    ThreadContext *thread = (ThreadContext*) arg;
+    for (int d = 1; d < thread->depth + 1; d++)
+    {
+        Move current_best;
+        int current_value = negamax(thread->pos, thread, d, &current_best);
+        printf("Search at (%i): ", d); print_move(current_best); printf("\n");
+
+        if (current_value != -2147483648) {
+            *thread->best_move = current_best;
+            *thread->value = current_value;
+        }
+
+    }
+    return NULL;
+}

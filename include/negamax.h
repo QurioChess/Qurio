@@ -6,5 +6,5 @@
 #include "evaluation.h"
 #include "search_context.h"
 
-int negamax(Position pos, SearchContext *search, ThreadContext *thread, int depth, Move *best_move);
-// int iterative_deepening(Position pos, int depth, Move *best_move);
+int negamax(Position pos, ThreadContext *thread, int depth, Move *best_move);
+void* iterative_deepening(void *arg);
