@@ -4,6 +4,7 @@
 #include <stdatomic.h>
 #include <pthread.h>
 
+#include "board.h"
 #include "move.h"
 
 typedef struct {
@@ -14,7 +15,8 @@ typedef struct {
     Position pos;
     SearchContext *search;
     uint64_t nodes;
-    Move *best_move;
-    int *value;
+    Move best_move;
+    int value;
     int depth;
+    int completed_depth;
 } ThreadContext;

@@ -21,7 +21,7 @@ The following fundamental features are planned or in development:
 
 Once the fundamentals are implemented (negamax + alpha-beta pruning), the engine will progressively add the following search enhancements:
 
-- [ ] Iterative Deepening
+- [x] Iterative Deepening
 - [ ] Basic Move Ordering (captures via MVV-LVA)
 - [ ] Quiescence Search
 - [ ] Transposition Table (sort TT move first)

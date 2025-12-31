@@ -56,13 +56,33 @@ void* iterative_deepening(void *arg) {
     {
         Move current_best;
         int current_value = negamax(thread->pos, thread, d, &current_best);
-        printf("Search at (%i): ", d); print_move(current_best); printf("\n");
+        printf("Search at (depth: %i) (nodes: %lu) (value: %i): ", d, thread->nodes, current_value); print_move(current_best); printf("\n");
 
-        if (current_value != -2147483648) {
-            *thread->best_move = current_best;
-            *thread->value = current_value;
+        if ((current_value != -2147483648) && (!atomic_load_explicit(&thread->search->stop, memory_order_relaxed))) {
+            thread->best_move = current_best;
+            thread->value = current_value;
+            thread->completed_depth = d;
         }
-
     }
+    return NULL;
+}
+
+
+void* main_search(void *arg) {
+    iterative_deepening(arg);
+
+    ThreadContext *thread = (ThreadContext*) arg;
+    if (thread->value != -2147483648)
+    {
+        printf("info: nodes: %" PRIu64 "\n", thread->nodes);
+        printf("info: completed_depth: %i\n", thread->completed_depth);
+        printf("bestmove "); print_move(thread->best_move);  printf("\n");
+        fflush(stdout);
+    }
+    else
+    {
+        printf("Search did not succeed\n");
+    }
+
     return NULL;
 }
