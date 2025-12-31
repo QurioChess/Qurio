@@ -16,7 +16,7 @@ typedef struct {
     SearchContext *search;
     uint64_t nodes;
     Move best_move;
-    int value;
+    Score value;
     int depth;
     int completed_depth;
 } ThreadContext;

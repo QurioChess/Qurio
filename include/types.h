@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <limits.h>
 
 static const int NRANKS = 8;
 static const int NFILES = 8;
@@ -14,6 +15,7 @@ typedef uint8_t Piece;
 typedef uint8_t PromotionType;
 typedef uint8_t CastlingRight;
 typedef uint8_t MoveType;
+typedef int Score;
 
 enum ColorConst { WHITE = 0, BLACK = 1 };
 enum PieceTypeConst { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NPIECES = 6 };
@@ -32,6 +34,7 @@ enum SquareConst {
     NOSQUARE = 255, NSQUARES = 64
 };
 enum CastlingRightConst { NO_CASTLING, WCASTLING_KING, WCASTLING_QUEEN, BCASTLING_KING = 4, BCASTLING_QUEEN = 8 };
+enum ScoreConst { PAT_SCORE = 0, MATE_SCORE = INT_MAX - 1024, INVALID_SCORE = INT_MIN };
 
 static const char * const PIECE_NAMES[] = { "P", "N", "B", "R", "Q", "K" };
 static const char * const PROMOTION_PIECE_NAMES[] = { "-", "n", "b", "r", "q" };
