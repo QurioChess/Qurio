@@ -13,10 +13,10 @@ typedef struct {
 
 typedef struct {
     Position pos;
-    SearchContext *search;
+    SearchContext *search_ctx;
     uint64_t nodes;
     Move best_move;
-    Score value;
+    Score score;
     int depth;
     int completed_depth;
 } ThreadContext;

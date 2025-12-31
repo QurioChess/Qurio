@@ -56,7 +56,7 @@ Move parse_move(Position pos, char* move_token) {
     return (Move)0;
 }
 
-void command_go(Position pos, SearchContext *search, pthread_t *search_thread, char* go_options) {
+void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_thread, char* go_options) {
     int depth = 1;
 
     char *token = strtok(go_options, " ");
@@ -70,7 +70,7 @@ void command_go(Position pos, SearchContext *search, pthread_t *search_thread, c
         }
     }
 
-    start_search(pos, search, search_thread, depth);
+    start_search(pos, search_ctx, search_thread, depth);
 }
 
 void command_uci() {
@@ -90,8 +90,8 @@ void command_ucinewgame(Position *pos) {
 }
 
 
-void command_stop(SearchContext *search, pthread_t *search_thread) {
-    stop_search(search, search_thread);
+void command_stop(SearchContext *search_ctx, pthread_t *search_thread) {
+    stop_search(search_ctx, search_thread);
 }
 
 
@@ -101,7 +101,7 @@ void main_loop() {
     Position pos;
     set_start_position(&pos);
 
-    SearchContext search;
+    SearchContext search_ctx;
     pthread_t search_thread;
 
     while (fgets(line, sizeof(line), stdin) != NULL)
@@ -132,12 +132,12 @@ void main_loop() {
         }
 
         if (strncmp(line, "go", 2) == 0) {
-            command_go(pos, &search, &search_thread, line + 3);
+            command_go(pos, &search_ctx, &search_thread, line + 3);
             continue;
         }
 
         if (strncmp(line, "stop", 4) == 0) {
-            command_stop(&search, &search_thread);
+            command_stop(&search_ctx, &search_thread);
             continue;
         }
     }

@@ -66,7 +66,7 @@ void divide_perft(Position pos, int depth)  {
 
 int main() {
     printf("Qurio - Chess engine\n");
-    print_bitboard(MATE_SCORE);
+    // print_bitboard(MATE_SCORE);
 
 
     // printf("Size of Position struct: %zu bytes\n", sizeof(Position));
@@ -258,7 +258,7 @@ int main() {
 
     // search(pos, 6);
 
-    // main_loop();
+    main_loop();
 
     return 0;
 }

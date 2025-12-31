@@ -1,13 +1,13 @@
 #include "negamax.h"
 
-int negamax(Position pos, ThreadContext *thread, int depth, Move *best_move)
+int negamax(Position pos, ThreadContext *thread_ctx, int depth, Move *best_move)
 {
-    if (atomic_load_explicit(&thread->search->stop, memory_order_relaxed))
+    if (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed))
     {
         return INVALID_SCORE;
     }
-    thread->nodes++;
 
+    thread_ctx->nodes++;
     if (depth == 0) return evaluate(pos);
     
     int legal_moves_count = 0;
@@ -22,11 +22,11 @@ int negamax(Position pos, ThreadContext *thread, int depth, Move *best_move)
         if (is_in_check(next_pos, next_pos.side ^ 1)) continue;
         legal_moves_count++;
 
-        int value = -negamax(next_pos, thread, depth - 1, NULL);
+        int value = -negamax(next_pos, thread_ctx, depth - 1, NULL);
 
         if (value > best_value)
         {
-            best_value = value;
+            best_value = (value > MATE_SCORE) ? MATE_SCORE : value;
             if (best_move != NULL)
             {
                 *best_move = move_list.moves[i];
@@ -51,18 +51,18 @@ int negamax(Position pos, ThreadContext *thread, int depth, Move *best_move)
 
 
 void* iterative_deepening(void *arg) {
-    ThreadContext *thread = (ThreadContext*) arg;
-    for (int d = 1; d < thread->depth + 1; d++)
+    ThreadContext *thread_ctx = (ThreadContext*) arg;
+    for (int d = 1; d < thread_ctx->depth + 1; d++)
     {
         Move current_best;
-        Score current_value = negamax(thread->pos, thread, d, &current_best);
-        printf("Search at (depth: %i) (nodes: %lu) (value: %i): ", d, thread->nodes, current_value); print_move(current_best); printf("\n");
+        Score current_score = negamax(thread_ctx->pos, thread_ctx, d, &current_best);
+        printf("Search at (depth: %i) (nodes: %lu) (value: %i): ", d, thread_ctx->nodes, current_score); print_move(current_best); printf("\n");
 
-        if ((current_value == INVALID_SCORE) || (atomic_load_explicit(&thread->search->stop, memory_order_relaxed))) break;
+        if ((current_score == INVALID_SCORE) || (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed))) break;
 
-        thread->best_move = current_best;
-        thread->value = current_value;
-        thread->completed_depth = d;
+        thread_ctx->best_move = current_best;
+        thread_ctx->score = current_score;
+        thread_ctx->completed_depth = d;
     }
     return NULL;
 }
@@ -71,12 +71,12 @@ void* iterative_deepening(void *arg) {
 void* main_search(void *arg) {
     iterative_deepening(arg);
 
-    ThreadContext *thread = (ThreadContext*) arg;
-    if (thread->value != INVALID_SCORE)
+    ThreadContext *thread_ctx = (ThreadContext*) arg;
+    if (thread_ctx->score != INVALID_SCORE)
     {
-        printf("info: nodes: %" PRIu64 "\n", thread->nodes);
-        printf("info: completed_depth: %i\n", thread->completed_depth);
-        printf("bestmove "); print_move(thread->best_move);  printf("\n");
+        printf("info: nodes: %" PRIu64 "\n", thread_ctx->nodes);
+        printf("info: completed_depth: %i\n", thread_ctx->completed_depth);
+        printf("bestmove "); print_move(thread_ctx->best_move);  printf("\n");
         fflush(stdout);
     }
     else
