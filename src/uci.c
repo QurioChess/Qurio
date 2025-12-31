@@ -18,6 +18,13 @@ void command_position(Position *pos, char* position_options) {
     char *move_token = strtok(moves, " ");
     while (move_token != NULL) {
         Move move = parse_move(*pos, move_token);
+        if (move == INVALID_MOVE)
+        {
+            printf("Invalid move: '%s', Current position:\n", move_token);
+            print_position(*pos);
+            return;
+        }
+        
         make_move(pos, move);
         move_token = strtok(NULL, " ");
     }
@@ -53,7 +60,7 @@ Move parse_move(Position pos, char* move_token) {
         
     }
 
-    return (Move)0;
+    return INVALID_MOVE;
 }
 
 void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_thread, char* go_options) {
@@ -95,6 +102,19 @@ void command_stop(SearchContext *search_ctx, pthread_t *search_thread) {
 }
 
 
+void command_perft(Position pos, char *perft_options) {
+    int depth = 1;
+
+    if (strncmp(perft_options, "depth", 5) == 0)
+    {
+        depth = atoi(perft_options + 6);
+    }
+    
+    printf(">>> Running perft at depth %i\n", depth);
+    divide_perft(pos, depth);
+}
+
+
 void main_loop() {
     char line[2048];
 
@@ -112,7 +132,6 @@ void main_loop() {
 
         if (strncmp(line, "position", 8) == 0) {
             command_position(&pos, line + 9);
-            // print_position(pos);
             continue;
         }
         
@@ -138,6 +157,11 @@ void main_loop() {
 
         if (strncmp(line, "stop", 4) == 0) {
             command_stop(&search_ctx, &search_thread);
+            continue;
+        }
+
+        if (strncmp(line, "perft", 5) == 0) {
+            command_perft(pos, line + 6);
             continue;
         }
     }

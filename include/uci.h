@@ -9,6 +9,7 @@
 #include "move.h"
 #include "movegen.h"
 #include "search_engine.h"
+#include "perft.h"
 
 /*
 go wtime <> btime <> winc <> binc <> movestogo <>
@@ -30,3 +31,5 @@ void command_stop(SearchContext *search_ctx, pthread_t *search_thread);
 void command_uci();
 void command_ucinewgame(Position *pos);
 void command_isready();
+
+void command_perft(Position pos, char *perft_options);

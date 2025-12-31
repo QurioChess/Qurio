@@ -9,7 +9,7 @@ void start_search(Position pos, SearchContext *search_ctx, pthread_t *search_thr
     thread_ctx.pos = pos;
     thread_ctx.search_ctx = search_ctx;
     thread_ctx.nodes = 0ULL;
-    thread_ctx.best_move = (Move)0;
+    thread_ctx.best_move = INVALID_MOVE;
     thread_ctx.score = INVALID_SCORE;
     thread_ctx.depth = depth;
     thread_ctx.completed_depth = 0;
