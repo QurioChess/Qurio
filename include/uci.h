@@ -28,12 +28,12 @@ isready
 
 void main_loop();
 
-void command_position(Position *pos, char* position_options);
+void command_position(EngineState *engine, char* position_options);
 Move parse_move(Position pos, char* move);
-void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_thread, char* go_options);
-void command_stop(SearchContext *search_ctx, pthread_t *search_thread);
+void command_go(EngineState *engine, char* go_options);
+void command_stop(EngineState *engine);
 void command_uci();
-void command_ucinewgame(Position *pos);
+void command_ucinewgame(EngineState *engine);
 void command_isready();
 
-void command_perft(Position pos, char *perft_options);
+void command_perft(EngineState *engine, char *perft_options);

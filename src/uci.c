@@ -1,7 +1,8 @@
 #include "uci.h"
 
 
-void command_position(Position *pos, char* position_options) {
+void command_position(EngineState *engine, char* position_options) {
+    Position *pos = &engine->pos;
     if (strncmp(position_options, "fen", 3) == 0)
     {
         parse_fen(pos, position_options + 4);
@@ -63,7 +64,7 @@ Move parse_move(Position pos, char* move_token) {
     return INVALID_MOVE;
 }
 
-void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_thread, char* go_options) {
+void command_go(EngineState *engine, char* go_options) {
     uint64_t start_time = get_time_ms();
     
     int depth = MAX_DEPTH;
@@ -73,10 +74,10 @@ void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_threa
     uint64_t inc = 0;
     int movestogo = 0;
 
+    Color stm = engine->pos.side;
+
     char *token = strtok(go_options, " ");
     while (token != NULL) {
-        printf(">>> dealing with: %s\n", token);
-
         if (strcmp(token, "depth") == 0)
         {
             token = strtok(NULL, " ");
@@ -87,7 +88,7 @@ void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_threa
         else if (strcmp(token, "wtime") == 0)
         {
             token = strtok(NULL, " ");
-            if ((token != NULL) && (pos.side == WHITE)) {
+            if ((token != NULL) && (stm == WHITE)) {
                 time = (uint64_t)atoi(token);
                 use_time_control = true;
             }
@@ -95,7 +96,7 @@ void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_threa
         else if (strcmp(token, "btime") == 0)
         {
             token = strtok(NULL, " ");
-            if ((token != NULL) && (pos.side == BLACK)) {
+            if ((token != NULL) && (stm == BLACK)) {
                 time = (uint64_t)atoi(token);
                 use_time_control = true;
             }
@@ -103,7 +104,7 @@ void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_threa
         else if (strcmp(token, "winc") == 0)
         {
             token = strtok(NULL, " ");
-            if ((token != NULL) && (pos.side == WHITE)) {
+            if ((token != NULL) && (stm == WHITE)) {
                 inc = (uint64_t)atoi(token);
                 use_time_control = true;
             }
@@ -111,7 +112,7 @@ void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_threa
         else if (strcmp(token, "binc") == 0)
         {
             token = strtok(NULL, " ");
-            if ((token != NULL) && (pos.side == BLACK)) {
+            if ((token != NULL) && (stm == BLACK)) {
                 inc = (uint64_t)atoi(token);
                 use_time_control = true;
             }
@@ -127,8 +128,8 @@ void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_threa
     }
 
     printf(">>> Found limits: depth(%i) time(%" PRIu64 ") inc(%" PRIu64 ") movestogo(%i)\n", depth, time, inc, movestogo);
-    compute_time_to_search(&search_ctx->tm, start_time, time, inc, movestogo, use_time_control);
-    start_search(pos, search_ctx, search_thread, depth);
+    compute_time_to_search(&engine->search_ctx.tm, start_time, time, inc, movestogo, use_time_control);
+    start_search(engine, depth);
 }
 
 void command_uci() {
@@ -143,17 +144,17 @@ void command_isready() {
     fflush(stdout);
 }
 
-void command_ucinewgame(Position *pos) {
-    set_start_position(pos);
+void command_ucinewgame(EngineState *engine) {
+    set_start_position(&engine->pos);
 }
 
 
-void command_stop(SearchContext *search_ctx, pthread_t *search_thread) {
-    stop_search(search_ctx, search_thread);
+void command_stop(EngineState *engine) {
+    stop_search(engine);
 }
 
 
-void command_perft(Position pos, char *perft_options) {
+void command_perft(EngineState *engine, char *perft_options) {
     int depth = 1;
 
     if (strncmp(perft_options, "depth", 5) == 0)
@@ -162,18 +163,15 @@ void command_perft(Position pos, char *perft_options) {
     }
     
     printf(">>> Running perft at depth %i\n", depth);
-    divide_perft(pos, depth);
+    divide_perft(engine->pos, depth);
 }
 
 
 void main_loop() {
     char line[2048];
 
-    Position pos;
-    set_start_position(&pos);
-
-    SearchContext search_ctx;
-    pthread_t search_thread;
+    EngineState engine;
+    set_start_position(&engine.pos);
 
     while (fgets(line, sizeof(line), stdin) != NULL)
     {
@@ -182,12 +180,12 @@ void main_loop() {
         if (strncmp(line, "quit", 4) == 0) return;
 
         if (strncmp(line, "position", 8) == 0) {
-            command_position(&pos, line + 9);
+            command_position(&engine, line + 9);
             continue;
         }
         
         if (strncmp(line, "ucinewgame", 10) == 0) {
-            command_ucinewgame(&pos);
+            command_ucinewgame(&engine);
             continue;
         }
 
@@ -202,17 +200,17 @@ void main_loop() {
         }
 
         if (strncmp(line, "go", 2) == 0) {
-            command_go(pos, &search_ctx, &search_thread, line + 3);
+            command_go(&engine, line + 3);
             continue;
         }
 
         if (strncmp(line, "stop", 4) == 0) {
-            command_stop(&search_ctx, &search_thread);
+            command_stop(&engine);
             continue;
         }
 
         if (strncmp(line, "perft", 5) == 0) {
-            command_perft(pos, line + 6);
+            command_perft(&engine, line + 6);
             continue;
         }
     }

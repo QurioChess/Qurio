@@ -191,6 +191,9 @@ bool is_in_check(Position pos, Color side) {
     return is_square_attacked_by(pos, king_square, op);
 }
 
+void push_move(MoveList *move_list, Move m) {
+    if (move_list->count < MAX_MOVES) move_list->moves[move_list->count++] = m;
+}
 
 void generate_knight_moves(U64 knight, U64 stm_occ, U64 op_occ, MoveList *move_list) {
     while (knight) {
@@ -202,24 +205,14 @@ void generate_knight_moves(U64 knight, U64 stm_occ, U64 op_occ, MoveList *move_l
         while (knight_captures)
         {
             Square target_sq = pop_lsb(&knight_captures);
-            move_list->moves[move_list->count++] = encode_move(
-                sq,
-                target_sq,
-                PROM_NONE,
-                MOVE_DEFAULT
-            );
+            push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
         // quiet
         U64 knight_quiets = knight_attacks & (~op_occ);
         while (knight_quiets)
         {
             Square target_sq = pop_lsb(&knight_quiets);
-            move_list->moves[move_list->count++] = encode_move(
-                sq,
-                target_sq,
-                PROM_NONE,
-                MOVE_DEFAULT
-            );
+            push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
     }
 }
@@ -240,24 +233,14 @@ void generate_bishop_moves(U64 bishop, U64 stm_occ, U64 op_occ, MoveList *move_l
         while (bishop_captures)
         {
             Square target_sq = pop_lsb(&bishop_captures);
-            move_list->moves[move_list->count++] = encode_move(
-                sq,
-                target_sq,
-                PROM_NONE,
-                MOVE_DEFAULT
-            );
+            push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
         // quiet
         U64 bishop_quiets = bishop_attacks & (~op_occ);
         while (bishop_quiets)
         {
             Square target_sq = pop_lsb(&bishop_quiets);
-            move_list->moves[move_list->count++] = encode_move(
-                sq,
-                target_sq,
-                PROM_NONE,
-                MOVE_DEFAULT
-            );
+            push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
     }
 }
@@ -274,24 +257,14 @@ void generate_rook_moves(U64 rook, U64 stm_occ, U64 op_occ, MoveList *move_list)
         while (rook_captures)
         {
             Square target_sq = pop_lsb(&rook_captures);
-            move_list->moves[move_list->count++] = encode_move(
-                sq,
-                target_sq,
-                PROM_NONE,
-                MOVE_DEFAULT
-            );
+            push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
         // quiet
         U64 rook_quiets = rook_attacks & (~op_occ);
         while (rook_quiets)
         {
             Square target_sq = pop_lsb(&rook_quiets);
-            move_list->moves[move_list->count++] = encode_move(
-                sq,
-                target_sq,
-                PROM_NONE,
-                MOVE_DEFAULT
-            );
+            push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
     }
 }
@@ -307,24 +280,14 @@ void generate_queen_moves(U64 queen, U64 stm_occ, U64 op_occ, MoveList *move_lis
         while (queen_captures)
         {
             Square target_sq = pop_lsb(&queen_captures);
-            move_list->moves[move_list->count++] = encode_move(
-                sq,
-                target_sq,
-                PROM_NONE,
-                MOVE_DEFAULT
-            );
+            push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
         // quiet
         U64 queen_quiets = queen_attacks & (~op_occ);
         while (queen_quiets)
         {
             Square target_sq = pop_lsb(&queen_quiets);
-            move_list->moves[move_list->count++] = encode_move(
-                sq,
-                target_sq,
-                PROM_NONE,
-                MOVE_DEFAULT
-            );
+            push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
     }
 }
@@ -344,12 +307,7 @@ void generate_pawn_moves(U64 pawn, Color stm, U64 stm_occ, U64 op_occ, Square en
         while (enpassant_captures)
         {
             Square from_sq = pop_lsb(&enpassant_captures);
-            move_list->moves[move_list->count++] = encode_move(
-                from_sq,
-                enpassant,
-                PROM_NONE,
-                MOVE_ENPASSANT
-            );
+                push_move(move_list, encode_move(from_sq, enpassant, PROM_NONE, MOVE_ENPASSANT));
         }
     }
 
@@ -364,38 +322,13 @@ void generate_pawn_moves(U64 pawn, Color stm, U64 stm_occ, U64 op_occ, Square en
             Square target_sq = pop_lsb(&pawn_captures);
             
             if ((1ULL << target_sq) & promotion_rank) {
-                move_list->moves[move_list->count++] = encode_move(
-                    sq,
-                    target_sq,
-                    PROM_KNIGHT,
-                    MOVE_PROM
-                );
-                move_list->moves[move_list->count++] = encode_move(
-                    sq,
-                    target_sq,
-                    PROM_BISHOP,
-                    MOVE_PROM
-                );
-                move_list->moves[move_list->count++] = encode_move(
-                    sq,
-                    target_sq,
-                    PROM_ROOK,
-                    MOVE_PROM
-                );
-                move_list->moves[move_list->count++] = encode_move(
-                    sq,
-                    target_sq,
-                    PROM_QUEEN,
-                    MOVE_PROM
-                );
+                push_move(move_list, encode_move(sq, target_sq, PROM_KNIGHT, MOVE_PROM));
+                push_move(move_list, encode_move(sq, target_sq, PROM_BISHOP, MOVE_PROM));
+                push_move(move_list, encode_move(sq, target_sq, PROM_ROOK, MOVE_PROM));
+                push_move(move_list, encode_move(sq, target_sq, PROM_QUEEN, MOVE_PROM));
             }
             else {
-                move_list->moves[move_list->count++] = encode_move(
-                    sq,
-                    target_sq,
-                    PROM_NONE,
-                    MOVE_DEFAULT
-                );
+                push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
             }
         }
         
@@ -408,38 +341,13 @@ void generate_pawn_moves(U64 pawn, Color stm, U64 stm_occ, U64 op_occ, Square en
         
         Square target_sq = lsb_index(push);
         if ((1ULL << target_sq) & promotion_rank) {
-            move_list->moves[move_list->count++] = encode_move(
-                sq,
-                target_sq,
-                PROM_KNIGHT,
-                MOVE_PROM
-            );
-            move_list->moves[move_list->count++] = encode_move(
-                sq,
-                target_sq,
-                PROM_BISHOP,
-                MOVE_PROM
-            );
-            move_list->moves[move_list->count++] = encode_move(
-                sq,
-                target_sq,
-                PROM_ROOK,
-                MOVE_PROM
-            );
-            move_list->moves[move_list->count++] = encode_move(
-                sq,
-                target_sq,
-                PROM_QUEEN,
-                MOVE_PROM
-            );
+            push_move(move_list, encode_move(sq, target_sq, PROM_KNIGHT, MOVE_PROM));
+            push_move(move_list, encode_move(sq, target_sq, PROM_BISHOP, MOVE_PROM));
+            push_move(move_list, encode_move(sq, target_sq, PROM_ROOK, MOVE_PROM));
+            push_move(move_list, encode_move(sq, target_sq, PROM_QUEEN, MOVE_PROM));
         }
         else {
-            move_list->moves[move_list->count++] = encode_move(
-                sq,
-                target_sq,
-                PROM_NONE,
-                MOVE_DEFAULT
-            );
+            push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
 
         if (!(bb & double_push_rank)) {
@@ -471,24 +379,14 @@ void generate_king_moves(Square king_square, Color stm, U64 stm_occ, U64 op_occ,
     while (king_captures)
     {
         Square target_sq = pop_lsb(&king_captures);
-        move_list->moves[move_list->count++] = encode_move(
-            king_square,
-            target_sq,
-            PROM_NONE,
-            MOVE_DEFAULT
-        );
+            push_move(move_list, encode_move(king_square, target_sq, PROM_NONE, MOVE_DEFAULT));
     }
     // quiet
     U64 king_quiets = king_attacks & (~op_occ);
     while (king_quiets)
     {
         Square target_sq = pop_lsb(&king_quiets);
-        move_list->moves[move_list->count++] = encode_move(
-            king_square,
-            target_sq,
-            PROM_NONE,
-            MOVE_DEFAULT
-        );
+            push_move(move_list, encode_move(king_square, target_sq, PROM_NONE, MOVE_DEFAULT));
     }
 
     //castling
@@ -515,12 +413,7 @@ void generate_king_moves(Square king_square, Color stm, U64 stm_occ, U64 op_occ,
             
             if (!(is_square_attacked_by(pos, fsquare, op) || is_square_attacked_by(pos, gsquare, op)))
             {
-                move_list->moves[move_list->count++] = encode_move(
-                king_square,
-                king_castle_square,
-                PROM_NONE,
-                MOVE_CASTLING
-                );
+                push_move(move_list, encode_move(king_square, king_castle_square, PROM_NONE, MOVE_CASTLING));
             }
         }
     }
@@ -534,12 +427,7 @@ void generate_king_moves(Square king_square, Color stm, U64 stm_occ, U64 op_occ,
 
             if (!(is_square_attacked_by(pos, dsquare, op) || is_square_attacked_by(pos, csquare, op)))
             {
-                move_list->moves[move_list->count++] = encode_move(
-                king_square,
-                queen_castle_square,
-                PROM_NONE,
-                MOVE_CASTLING
-                );
+                push_move(move_list, encode_move(king_square, queen_castle_square, PROM_NONE, MOVE_CASTLING));
             }
         }
     }

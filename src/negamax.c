@@ -8,7 +8,7 @@ bool should_stop(ThreadContext *thread_ctx) {
     return false;
 }
 
-int negamax(Position pos, ThreadContext *thread_ctx, int depth, Move *best_move)
+Score negamax(Position pos, ThreadContext *thread_ctx, int depth, Move *best_move)
 {
     if (should_stop(thread_ctx)) return INVALID_SCORE;
 

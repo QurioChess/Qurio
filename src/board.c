@@ -194,7 +194,7 @@ void parse_fen(Position *pos, char *fen) {
     // Piece Placement
     int rank = 7;
     int file = 0;    
-    while ((*p != '\0') & (*p != ' ')) {
+    while ((*p != '\0') && (*p != ' ')) {
         char c = *p;
         if (c == '/')
         {

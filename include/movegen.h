@@ -25,6 +25,7 @@ U64 generate_pawn_attacks(Square sq, Color side);
 bool is_square_attacked_by(Position pos, Square sq, Color side);
 bool is_in_check(Position pos, Color side);
 
+void push_move(MoveList *move_list, Move m);
 
 void generate_knight_moves(U64 knight, U64 stm_occ, U64 op_occ, MoveList *move_list);
 void generate_bishop_moves(U64 bishop, U64 stm_occ, U64 op_occ, MoveList *move_list);
