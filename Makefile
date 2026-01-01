@@ -5,7 +5,7 @@ CSTD    := -std=c17
 # ===== Directories =====
 SRC_DIR := src
 INC_DIR := include
-BIN     := engine
+EXE     := engine
 
 # ===== Sources =====
 SRCS := $(wildcard $(SRC_DIR)/*.c)
@@ -28,15 +28,15 @@ all: release
 
 # ===== Release build =====
 release: CFLAGS := $(CFLAGS_COMMON) $(CFLAGS_RELEASE)
-release: $(BIN)
+release: $(EXE)
 
 # ===== Debug build =====
 debug: CFLAGS := $(CFLAGS_COMMON) $(CFLAGS_DEBUG)
 debug: LDFLAGS :=
-debug: $(BIN)
+debug: $(EXE)
 
 # ===== Build rules =====
-$(BIN): $(OBJS)
+$(EXE): $(OBJS)
 	$(CC) $(OBJS) $(LDFLAGS) -o $@
 
 %.o: %.c
@@ -44,6 +44,6 @@ $(BIN): $(OBJS)
 
 # ===== Clean =====
 clean:
-	rm -f $(OBJS) $(BIN)
+	rm -f $(OBJS) $(EXE)
 
 .PHONY: all release debug clean
