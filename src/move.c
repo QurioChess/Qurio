@@ -45,11 +45,9 @@ void print_move(Move move) {
         break;
     case MOVE_ENPASSANT:
         printf("%s%s", SQUARE_NAMES[from], SQUARE_NAMES[to]);
-        // printf("ep:%s%s", SQUARE_NAMES[from], SQUARE_NAMES[to]);
         break;
     case MOVE_CASTLING:
         printf("%s%s", SQUARE_NAMES[from], SQUARE_NAMES[to]);
-        // printf("castle:%s%s", SQUARE_NAMES[from], SQUARE_NAMES[to]);
         break;
     
     default:

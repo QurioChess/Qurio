@@ -1,6 +1,5 @@
 #include "uci.h"
 
-
 void command_position(EngineState *engine, char* position_options) {
     Position *pos = &engine->pos;
     if (strncmp(position_options, "fen", 3) == 0)

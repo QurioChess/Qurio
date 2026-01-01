@@ -8,13 +8,10 @@
 
 #define MAX_MOVES 255
 
-
 typedef struct {
     Move moves[MAX_MOVES];
     int count;
 } MoveList;
-
-
 
 U64 generate_king_attacks(Square sq);
 U64 generate_knight_attacks(Square sq);

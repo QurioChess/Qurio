@@ -223,11 +223,6 @@ void generate_bishop_moves(U64 bishop, U64 stm_occ, U64 op_occ, MoveList *move_l
         Square sq = pop_lsb(&bishop);
         U64 bishop_attacks = generate_bishop_attacks(sq, occ) & (~stm_occ);
 
-        // if (bishop_attacks) {
-        //     printf("Bishop on: %s\n", SQUARE_NAMES[sq]);
-        //     print_bitboard(bishop_attacks);
-        // }
-
         // capture
         U64 bishop_captures = bishop_attacks & op_occ;
         while (bishop_captures)
