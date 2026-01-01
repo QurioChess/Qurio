@@ -4,24 +4,11 @@ Qurio is a work-in-progress chess engine built from scratch. The goal is to lear
 
 ---
 
-## Current progress
-
-The following fundamental features are planned or in development:
-
-| Feature                   | Status          |
-|----------------------------|----------------|
-| Board representation       | In progress    |
-| Move generation            | Planned        |
-| Make/unmake move           | Planned        |
-| Static evaluation          | Planned        |
-| Negamax search             | Planned        |
----
-
 ## Planned search features
 
 Once the fundamentals are implemented (negamax + alpha-beta pruning), the engine will progressively add the following search enhancements:
 
-- [ ] Iterative Deepening
+- [x] Iterative Deepening
 - [ ] Basic Move Ordering (captures via MVV-LVA)
 - [ ] Quiescence Search
 - [ ] Transposition Table (sort TT move first)
