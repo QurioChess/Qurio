@@ -1,11 +1,16 @@
 #include "negamax.h"
 
+bool should_stop(ThreadContext *thread_ctx) {
+    if (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed)) return true;
+    if (((thread_ctx->nodes % 2048) == 0) && time_up(&thread_ctx->search_ctx->tm)) {
+        atomic_store_explicit(&thread_ctx->search_ctx->stop, true, memory_order_relaxed);
+    }
+    return false;
+}
+
 int negamax(Position pos, ThreadContext *thread_ctx, int depth, Move *best_move)
 {
-    if (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed))
-    {
-        return INVALID_SCORE;
-    }
+    if (should_stop(thread_ctx)) return INVALID_SCORE;
 
     thread_ctx->nodes++;
     if (depth == 0) return evaluate(pos);
@@ -56,7 +61,7 @@ void* iterative_deepening(void *arg) {
     {
         Move current_best;
         Score current_score = negamax(thread_ctx->pos, thread_ctx, d, &current_best);
-        printf("Search at (depth: %i) (nodes: %lu) (value: %i): ", d, thread_ctx->nodes, current_score); print_move(current_best); printf("\n");
+        printf("Search at (depth: %i) (nodes: %" PRIu64 ") (value: %i): ", d, thread_ctx->nodes, current_score); print_move(current_best); printf("\n");
 
         if ((current_score == INVALID_SCORE) || (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed))) break;
 

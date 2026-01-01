@@ -3,6 +3,7 @@
 
 void start_search(Position pos, SearchContext *search_ctx, pthread_t *search_thread, int depth) {
     atomic_store_explicit(&search_ctx->stop, false, memory_order_relaxed);
+    pthread_join(*search_thread, NULL);
 
     ThreadContext thread_ctx;
 

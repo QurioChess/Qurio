@@ -6,9 +6,12 @@
 
 #include "board.h"
 #include "move.h"
+#include "time_management.h"
+
 
 typedef struct {
     atomic_bool stop;
+    TimeManagement tm;
 } SearchContext;
 
 typedef struct {

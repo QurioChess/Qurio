@@ -18,8 +18,9 @@ U64 perft(Position pos, int depth) {
 }
 
 
-void divide_perft(Position pos, int depth)  {
-    clock_t start = clock();
+void divide_perft(Position pos, int depth)
+{
+    uint64_t start = get_time_ms();
 
     MoveList move_list = { .count = 0 };
     U64 nodes = 0ULL;
@@ -30,23 +31,22 @@ void divide_perft(Position pos, int depth)  {
         Position next_pos = pos;
         make_move(&next_pos, move_list.moves[i]);
         if (is_in_check(next_pos, next_pos.side ^ 1)) continue;
-        
+
         U64 subnodes = perft(next_pos, depth - 1);
         print_move(move_list.moves[i]);
         printf(": %" PRIu64 "\n", subnodes);
         nodes += subnodes;
-
     }
 
-    clock_t end = clock();
-    double time_taken_sec = (double)(end - start) / CLOCKS_PER_SEC; 
-    double time_taken_ms = time_taken_sec * 1000.0;
+    uint64_t end = get_time_ms();
+    uint64_t time_taken_ms = end - start;
+    double time_taken_s = (double)time_taken_ms / 1000.0;
 
     printf("Number of nodes: %" PRIu64 "\n", nodes);
-    printf("Time taken: %.3f ms\n", time_taken_ms);
+    printf("Time taken: %" PRIu64 " ms (%.3f s)\n", time_taken_ms, time_taken_s);
 
     if (time_taken_ms > 0) {
-        double nps = (double)nodes / (time_taken_ms / 1000.0);
+        double nps = (double)nodes / time_taken_s;
         printf("NPS: %.0f\n", nps);
     } else {
         printf("Time too short to calculate NPS accurately.\n");

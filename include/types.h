@@ -5,6 +5,7 @@
 
 static const int NRANKS = 8;
 static const int NFILES = 8;
+static const int MAX_DEPTH = 255;
 
 typedef uint64_t U64;
 
