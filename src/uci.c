@@ -63,11 +63,18 @@ Move parse_move(Position pos, char* move_token) {
     return INVALID_MOVE;
 }
 
-void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_thread, char* go_options) {
+void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_thread, TimeManagement *tm, char* go_options) {
+    clock_t start_time = clock();
+    
     int depth = 1;
+    clock_t time = 0;
+    clock_t inc = 0;
+    int movestogo = 0;
 
     char *token = strtok(go_options, " ");
     while (token != NULL) {
+        printf(">>> dealing with: %s\n", token);
+
         if (strcmp(token, "depth") == 0)
         {
             token = strtok(NULL, " ");
@@ -75,8 +82,46 @@ void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_threa
                 depth = atoi(token);
             }
         }
+        else if (strcmp(token, "wtime") == 0)
+        {
+            token = strtok(NULL, " ");
+            if ((token != NULL) && (pos.side == WHITE)) {
+                time = atoi(token) * 1000 * CLOCKS_PER_SEC;
+            }
+        }
+        else if (strcmp(token, "btime") == 0)
+        {
+            token = strtok(NULL, " ");
+            if ((token != NULL) && (pos.side == BLACK)) {
+                time = atoi(token) * 1000 * CLOCKS_PER_SEC;
+            }
+        }
+        else if (strcmp(token, "winc") == 0)
+        {
+            token = strtok(NULL, " ");
+            if ((token != NULL) && (pos.side == WHITE)) {
+                inc = atoi(token) * 1000 * CLOCKS_PER_SEC;
+            }
+        }
+        else if (strcmp(token, "binc") == 0)
+        {
+            token = strtok(NULL, " ");
+            if ((token != NULL) && (pos.side == BLACK)) {
+                inc = atoi(token) * 1000 * CLOCKS_PER_SEC;
+            }
+        }
+        else if (strcmp(token, "movestogo") == 0)
+        {
+            token = strtok(NULL, " ");
+            if ((token != NULL)) {
+                movestogo = atoi(token);
+            }
+        }
+        token = strtok(NULL, " ");
     }
 
+    printf(">>> Found limits: depth(%i) time(%li) inc(%li) movestogo(%i)\n", depth, time, inc, movestogo);
+    compute_time_to_search(tm, start_time, time, inc, movestogo);
     start_search(pos, search_ctx, search_thread, depth);
 }
 
@@ -124,6 +169,8 @@ void main_loop() {
     SearchContext search_ctx;
     pthread_t search_thread;
 
+    TimeManagement tm;
+
     while (fgets(line, sizeof(line), stdin) != NULL)
     {
         line[strcspn(line, "\r\n")] = '\0';
@@ -151,7 +198,7 @@ void main_loop() {
         }
 
         if (strncmp(line, "go", 2) == 0) {
-            command_go(pos, &search_ctx, &search_thread, line + 3);
+            command_go(pos, &search_ctx, &search_thread, &tm, line + 3);
             continue;
         }
 

@@ -4,12 +4,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <time.h>
 
 #include "board.h"
 #include "move.h"
 #include "movegen.h"
 #include "search_engine.h"
 #include "perft.h"
+#include "time_management.h"
 
 /*
 go wtime <> btime <> winc <> binc <> movestogo <>
@@ -26,7 +28,7 @@ void main_loop();
 
 void command_position(Position *pos, char* position_options);
 Move parse_move(Position pos, char* move);
-void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_thread, char* go_options);
+void command_go(Position pos, SearchContext *search_ctx, pthread_t *search_thread, TimeManagement *tm, char* go_options);
 void command_stop(SearchContext *search_ctx, pthread_t *search_thread);
 void command_uci();
 void command_ucinewgame(Position *pos);
