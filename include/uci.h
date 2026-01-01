@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "bench.h"
 #include "board.h"
 #include "move.h"
 #include "movegen.h"

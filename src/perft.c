@@ -39,15 +39,12 @@ void divide_perft(Position pos, int depth) {
 
     uint64_t end = get_time_ms();
     uint64_t time_taken_ms = end - start;
+    time_taken_ms = (time_taken_ms > 0) ? time_taken_ms : 1;
     double time_taken_s = (double)time_taken_ms / 1000.0;
 
-    printf("Number of nodes: %" PRIu64 "\n", nodes);
-    printf("Time taken: %" PRIu64 " ms (%.3f s)\n", time_taken_ms, time_taken_s);
-
-    if (time_taken_ms > 0) {
-        double nps = (double)nodes / time_taken_s;
-        printf("NPS: %.0f\n", nps);
-    } else {
-        printf("Time too short to calculate NPS accurately.\n");
-    }
+    // Human-friendly output
+    printf("\n=== Perft Summary ===\n");
+    printf("Total nodes searched: %" PRIu64 "\n", nodes);
+    printf("Time taken          : %" PRIu64 " ms (%.3f s)\n", time_taken_ms, time_taken_s);
+    printf("Nodes per second    : %" PRIu64 "\n", (uint64_t)((double)nodes / time_taken_s));
 }

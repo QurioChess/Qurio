@@ -156,7 +156,7 @@ void command_perft(EngineState *engine, char *perft_options) {
 void main_loop() {
     char line[2048];
 
-    EngineState engine;
+    EngineState engine = {0};
     set_start_position(&engine.pos);
 
     while (fgets(line, sizeof(line), stdin) != NULL) {
@@ -197,6 +197,11 @@ void main_loop() {
 
         if (strncmp(line, "perft", 5) == 0) {
             command_perft(&engine, line + 6);
+            continue;
+        }
+
+        if (strncmp(line, "bench", 5) == 0) {
+            bench();
             continue;
         }
     }
