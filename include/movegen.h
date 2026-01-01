@@ -5,6 +5,7 @@
 
 #include "board.h"
 #include "move.h"
+#include "types.h"
 
 #define MAX_MOVES 255
 

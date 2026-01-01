@@ -1,6 +1,7 @@
 #pragma once
 
 #include "board.h"
+#include "types.h"
 
 static const Score PAWN_VALUE = 100;
 static const Score KNIGHT_VALUE = 300;

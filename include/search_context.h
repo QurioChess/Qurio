@@ -7,6 +7,7 @@
 #include "board.h"
 #include "move.h"
 #include "time_management.h"
+#include "types.h"
 
 typedef struct
 {

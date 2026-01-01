@@ -1,11 +1,10 @@
 #pragma once
 
-#include <pthread.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #include "board.h"
 #include "move.h"
@@ -14,6 +13,7 @@
 #include "search_engine.h"
 #include "time_management.h"
 #include "time_util.h"
+#include "types.h"
 
 void main_loop();
 

@@ -1,7 +1,9 @@
 #pragma once
 
 #include <inttypes.h>
+#include <stdatomic.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "board.h"
 #include "evaluation.h"

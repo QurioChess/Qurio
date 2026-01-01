@@ -21,7 +21,8 @@ void command_position(EngineState *engine, char *position_options) {
             print_position(*pos);
             MoveList move_list = {.count = 0};
             generate_pseudo_legals(*pos, &move_list);
-            printf("Available moves: \n"); print_move_list(move_list);
+            printf("Available moves: \n");
+            print_move_list(move_list);
             return;
         }
 
