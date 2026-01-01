@@ -6,6 +6,7 @@
 #include "time_util.h"
 
 static const uint64_t TIME_MARGIN = 10;
+static const int DEFAULT_MOVESTOGO = 40;
 
 typedef struct
 {

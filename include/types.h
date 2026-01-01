@@ -9,6 +9,24 @@ static const int MAX_DEPTH = 255;
 
 typedef uint64_t U64;
 
+static const U64 FILE_A = 0x0101010101010101ULL;
+static const U64 FILE_B = FILE_A << 1;
+static const U64 FILE_C = FILE_A << 2;
+static const U64 FILE_D = FILE_A << 3;
+static const U64 FILE_E = FILE_A << 4;
+static const U64 FILE_F = FILE_A << 5;
+static const U64 FILE_G = FILE_A << 6;
+static const U64 FILE_H = FILE_A << 7;
+
+static const U64 RANK_1 = 0x00000000000000FFULL;
+static const U64 RANK_2 = RANK_1 << 8;
+static const U64 RANK_3 = RANK_1 << 16;
+static const U64 RANK_4 = RANK_1 << 24;
+static const U64 RANK_5 = RANK_1 << 32;
+static const U64 RANK_6 = RANK_1 << 40;
+static const U64 RANK_7 = RANK_1 << 48;
+static const U64 RANK_8 = RANK_1 << 56;
+
 typedef uint8_t Color;
 typedef uint8_t Square;
 typedef uint8_t PieceType;

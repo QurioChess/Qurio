@@ -2,28 +2,28 @@
 
 U64 generate_knight_attacks(Square sq) {
     U64 bb = (1ULL << sq);
-    U64 northwest = ((bb & 0xfefefefefefeULL) << 15);
-    U64 northeast = ((bb & 0x7f7f7f7f7f7fULL) << 17);
-    U64 westnorth = ((bb & 0xfcfcfcfcfcfcfcULL) << 6);
-    U64 westsouth = ((bb & 0xfcfcfcfcfcfcfc00ULL) >> 10);
-    U64 eastnorth = ((bb & 0x3f3f3f3f3f3f3fULL) << 10);
-    U64 eastsouth = ((bb & 0x3f3f3f3f3f3f3f00ULL) >> 6);
-    U64 southwest = ((bb & 0xfefefefefefe0000ULL) >> 17);
-    U64 southeast = ((bb & 0x7f7f7f7f7f7f0000ULL) >> 15);
+    U64 northwest = ((bb & (~(RANK_8 | RANK_7 | FILE_A))) << 15);
+    U64 northeast = ((bb & (~(RANK_8 | RANK_7 | FILE_H))) << 17);
+    U64 westnorth = ((bb & (~(RANK_8 | FILE_A | FILE_B))) << 6);
+    U64 westsouth = ((bb & (~(RANK_1 | FILE_A | FILE_B))) >> 10);
+    U64 eastnorth = ((bb & (~(RANK_8 | FILE_G | FILE_H))) << 10);
+    U64 eastsouth = ((bb & (~(RANK_1 | FILE_G | FILE_H))) >> 6);
+    U64 southwest = ((bb & (~(RANK_1 | RANK_2 | FILE_A))) >> 17);
+    U64 southeast = ((bb & (~(RANK_1 | RANK_2 | FILE_H))) >> 15);
 
     return northwest | northeast | westnorth | westsouth | eastnorth | eastsouth | southwest | southeast;
 }
 
 U64 generate_king_attacks(Square sq) {
     U64 bb = (1ULL << sq);
-    U64 north = ((bb & 0xffffffffffffffULL) << 8);
-    U64 northwest = ((bb & 0xfefefefefefefeULL) << 7);
-    U64 northeast = ((bb & 0x7f7f7f7f7f7f7fULL) << 9);
-    U64 west = ((bb & 0xfefefefefefefefeULL) >> 1);
-    U64 east = ((bb & 0x7f7f7f7f7f7f7f7fULL) << 1);
-    U64 south = ((bb & 0xffffffffffffff00ULL) >> 8);
-    U64 southwest = ((bb & 0xfefefefefefefe00ULL) >> 9);
-    U64 southeast = ((bb & 0x7f7f7f7f7f7f7f00ULL) >> 7);
+    U64 north = ((bb & (~RANK_8)) << 8);
+    U64 northwest = ((bb & (~(RANK_8 | FILE_A))) << 7);
+    U64 northeast = ((bb & (~(RANK_8 | FILE_H))) << 9);
+    U64 west = ((bb & (~FILE_A)) >> 1);
+    U64 east = ((bb & (~FILE_H)) << 1);
+    U64 south = ((bb & (~RANK_1)) >> 8);
+    U64 southwest = ((bb & (~(RANK_1 | FILE_A))) >> 9);
+    U64 southeast = ((bb & (~(RANK_1 | FILE_H))) >> 7);
 
     return north | northwest | northeast | west | east | south | southwest | southeast;
 }
@@ -124,12 +124,12 @@ U64 generate_pawn_attacks(Square sq, Color side) {
     U64 bb = (1ULL << sq);
 
     if (side == WHITE) {
-        U64 northwest = ((bb & 0xfefefefefefefeULL) << 7);
-        U64 northeast = ((bb & 0x7f7f7f7f7f7f7fULL) << 9);
+        U64 northwest = ((bb & (~(RANK_8 | FILE_A))) << 7);
+        U64 northeast = ((bb & (~(RANK_8 | FILE_H))) << 9);
         return northwest | northeast;
     } else {
-        U64 southwest = ((bb & 0xfefefefefefefe00ULL) >> 9);
-        U64 southeast = ((bb & 0x7f7f7f7f7f7f7f00ULL) >> 7);
+        U64 southwest = ((bb & (~(RANK_1 | FILE_A))) >> 9);
+        U64 southeast = ((bb & (~(RANK_1 | FILE_H))) >> 7);
         return southwest | southeast;
     }
 }
@@ -263,8 +263,8 @@ void generate_queen_moves(U64 queen, U64 stm_occ, U64 op_occ, MoveList *move_lis
 void generate_pawn_moves(U64 pawn, Color stm, U64 stm_occ, U64 op_occ, Square enpassant, MoveList *move_list) {
     U64 occ = stm_occ | op_occ;
 
-    U64 double_push_rank = (stm == WHITE) ? 0xff00ULL : 0xff000000000000ULL;
-    U64 promotion_rank = (stm == WHITE) ? 0xff00000000000000ULL : 0xffULL;
+    U64 double_push_rank = (stm == WHITE) ? RANK_2 : RANK_7;
+    U64 promotion_rank = (stm == WHITE) ? RANK_8 : RANK_1;
 
     if (enpassant != NOSQUARE) {
         Color op = stm ^ 1;
