@@ -1,36 +1,35 @@
 #include "perft.h"
 
 U64 perft(Position pos, int depth) {
-    MoveList move_list = { .count = 0 };
+    MoveList move_list = {.count = 0};
     U64 nodes = 0ULL;
-    
-    if (depth == 0) return 1ULL;
+
+    if (depth == 0)
+        return 1ULL;
 
     generate_pseudo_legals(pos, &move_list);
-    for (int i = 0; i < move_list.count; i++)
-    {
+    for (int i = 0; i < move_list.count; i++) {
         Position next_pos = pos;
         make_move(&next_pos, move_list.moves[i]);
-        if (is_in_check(next_pos, next_pos.side ^ 1)) continue;
-        nodes += perft(next_pos, depth - 1);             
+        if (is_in_check(next_pos, next_pos.side ^ 1))
+            continue;
+        nodes += perft(next_pos, depth - 1);
     }
-    return nodes; 
+    return nodes;
 }
 
-
-void divide_perft(Position pos, int depth)
-{
+void divide_perft(Position pos, int depth) {
     uint64_t start = get_time_ms();
 
-    MoveList move_list = { .count = 0 };
+    MoveList move_list = {.count = 0};
     U64 nodes = 0ULL;
 
     generate_pseudo_legals(pos, &move_list);
-    for (int i = 0; i < move_list.count; i++)
-    {
+    for (int i = 0; i < move_list.count; i++) {
         Position next_pos = pos;
         make_move(&next_pos, move_list.moves[i]);
-        if (is_in_check(next_pos, next_pos.side ^ 1)) continue;
+        if (is_in_check(next_pos, next_pos.side ^ 1))
+            continue;
 
         U64 subnodes = perft(next_pos, depth - 1);
         print_move(move_list.moves[i]);

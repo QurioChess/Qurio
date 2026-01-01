@@ -9,9 +9,11 @@ void compute_time_to_search(TimeManagement *tm, uint64_t start_time, uint64_t ti
 }
 
 bool time_up(TimeManagement *tm) {
-    if (!tm->use_time_control) return false;
-    
+    if (!tm->use_time_control)
+        return false;
+
     uint64_t current = get_time_ms();
-    if (current >= tm->end_time) return true;
-    return false;    
+    if (current >= tm->end_time)
+        return true;
+    return false;
 }

@@ -9,7 +9,8 @@
 
 #define MAX_THREADS 1
 
-typedef struct {
+typedef struct
+{
     Position pos;
     SearchContext search_ctx;
     pthread_t search_threads[MAX_THREADS];

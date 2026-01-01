@@ -1,20 +1,21 @@
 #pragma once
 
-#include <stdint.h>
-#include <stdatomic.h>
 #include <pthread.h>
+#include <stdatomic.h>
+#include <stdint.h>
 
 #include "board.h"
 #include "move.h"
 #include "time_management.h"
 
-
-typedef struct {
+typedef struct
+{
     atomic_bool stop;
     TimeManagement tm;
 } SearchContext;
 
-typedef struct {
+typedef struct
+{
     Position pos;
     SearchContext *search_ctx;
     uint64_t nodes;

@@ -1,14 +1,15 @@
 #pragma once
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "board.h"
 #include "move.h"
 
 #define MAX_MOVES 255
 
-typedef struct {
+typedef struct
+{
     Move moves[MAX_MOVES];
     int count;
 } MoveList;

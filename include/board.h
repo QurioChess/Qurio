@@ -1,13 +1,14 @@
 #pragma once
 
 #include <inttypes.h>
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 
-#include "types.h"
 #include "move.h"
+#include "types.h"
 
-typedef struct {
+typedef struct
+{
     U64 pieces[2][NPIECES];
     U64 occ[2];
     CastlingRight castling;

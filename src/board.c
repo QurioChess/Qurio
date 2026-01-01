@@ -1,6 +1,5 @@
 #include "board.h"
 
-
 void print_bitboard(U64 bb) {
     printf("Bitboard value: %" PRIu64 "\n", bb);
     printf("Bitboard representation:\n");
@@ -22,50 +21,41 @@ void print_bitboard(U64 bb) {
 
 void print_position_bitboard(Position pos) {
     printf("White Piece:\n");
-    for (int p = 0; p < NPIECES; p ++) {
+    for (int p = 0; p < NPIECES; p++) {
         printf("Piece: %s \n", PIECE_NAMES[p]);
         print_bitboard(pos.pieces[WHITE][p]);
     }
     printf("Black Piece:\n");
-    for (int p = 0; p < NPIECES; p ++) {
+    for (int p = 0; p < NPIECES; p++) {
         printf("Piece: %s \n", PIECE_NAMES[p]);
         print_bitboard(pos.pieces[BLACK][p]);
     }
 }
 
-
 U64 bb_square_value(U64 bb, Square sq) {
     return (1ULL & (bb >> sq));
 }
 
-
-Piece get_piece_on(Position pos, Square sq){
-    for (int color = 0; color < 2; color++)
-    {
-        for (int p = 0; p < NPIECES; p++)
-        {
-            if (bb_square_value(pos.pieces[color][p], sq) != 0)
-            {
+Piece get_piece_on(Position pos, Square sq) {
+    for (int color = 0; color < 2; color++) {
+        for (int p = 0; p < NPIECES; p++) {
+            if (bb_square_value(pos.pieces[color][p], sq) != 0) {
                 return (Piece)(p + color * NPIECES);
             }
-            
         }
-        
     }
     return NOPIECE;
 }
 
-
 void print_position(Position pos) {
     printf("Position: \n");
     for (int rank = NRANKS - 1; rank >= 0; rank--) {
-        printf("%i ", rank+1);
+        printf("%i ", rank + 1);
         for (int file = 0; file < NFILES; file++) {
             Square sq = (Square)(NFILES * rank + file);
             Piece p = get_piece_on(pos, sq);
 
-            switch (p)
-            {
+            switch (p) {
             case WPAWN:
                 printf("%c ", 'P');
                 break;
@@ -102,11 +92,10 @@ void print_position(Position pos) {
             case BKING:
                 printf("%c ", 'k');
                 break;
-            
+
             default:
                 printf(". ");
             }
-            
         }
         printf("\n");
     }
@@ -114,13 +103,10 @@ void print_position(Position pos) {
     printf("Side to move: %s\n", (pos.side == WHITE) ? "W" : "B");
     printf("Castling right: %i\n", pos.castling);
 
-    if (pos.enpassant != NOSQUARE)
-    {
+    if (pos.enpassant != NOSQUARE) {
         printf("En passant square: %s\n", SQUARE_NAMES[pos.enpassant]);
-    }
-    else
-    {
-        printf("En passant square: NONE\n");        
+    } else {
+        printf("En passant square: NONE\n");
     }
 }
 
@@ -128,23 +114,23 @@ void set_start_position(Position *pos) {
     // Pawns
     pos->pieces[WHITE][PAWN] = 0xff00ULL;
     pos->pieces[BLACK][PAWN] = 0xff000000000000ULL;
-    
+
     // Knights
     pos->pieces[WHITE][KNIGHT] = 0x42ULL;
     pos->pieces[BLACK][KNIGHT] = 0x4200000000000000LL;
-    
+
     // Bishops
     pos->pieces[WHITE][BISHOP] = 0x24ULL;
     pos->pieces[BLACK][BISHOP] = 0x2400000000000000ULL;
-    
+
     // Rooks
     pos->pieces[WHITE][ROOK] = 0x81LL;
     pos->pieces[BLACK][ROOK] = 0x8100000000000000ULL;
-    
+
     // Queens
     pos->pieces[WHITE][QUEEN] = 0x8ULL;
     pos->pieces[BLACK][QUEEN] = 0x800000000000000ULL;
-    
+
     // Kings
     pos->pieces[WHITE][KING] = 0x10ULL;
     pos->pieces[BLACK][KING] = 0x1000000000000000ULL;
@@ -152,7 +138,7 @@ void set_start_position(Position *pos) {
     // Occupancies
     pos->occ[WHITE] = 0xffffULL;
     pos->occ[BLACK] = 0xffff000000000000ULL;
-    
+
     pos->side = WHITE;
     pos->castling = 0b1111;
     pos->enpassant = NOSQUARE;
@@ -162,23 +148,23 @@ void parse_fen(Position *pos, char *fen) {
     // Pawns
     pos->pieces[WHITE][PAWN] = 0x0ULL;
     pos->pieces[BLACK][PAWN] = 0x0ULL;
-    
+
     // Knights
     pos->pieces[WHITE][KNIGHT] = 0x0ULL;
     pos->pieces[BLACK][KNIGHT] = 0x0ULL;
-    
+
     // Bishops
     pos->pieces[WHITE][BISHOP] = 0x0ULL;
     pos->pieces[BLACK][BISHOP] = 0x0ULL;
-    
+
     // Rooks
     pos->pieces[WHITE][ROOK] = 0x0ULL;
     pos->pieces[BLACK][ROOK] = 0x0ULL;
-    
+
     // Queens
     pos->pieces[WHITE][QUEEN] = 0x0ULL;
     pos->pieces[BLACK][QUEEN] = 0x0ULL;
-    
+
     // Kings
     pos->pieces[WHITE][KING] = 0x0ULL;
     pos->pieces[BLACK][KING] = 0x0ULL;
@@ -193,24 +179,18 @@ void parse_fen(Position *pos, char *fen) {
 
     // Piece Placement
     int rank = 7;
-    int file = 0;    
+    int file = 0;
     while ((*p != '\0') && (*p != ' ')) {
         char c = *p;
-        if (c == '/')
-        {
+        if (c == '/') {
             rank--;
             file = 0;
-        }
-        else if (c >= '0' && c <= '9')
-        {
+        } else if (c >= '0' && c <= '9') {
             int skip = c - '0';
             file += skip;
-        }
-        else
-        {
+        } else {
             Square sq = (Square)((rank * NFILES) + file);
-            switch (c)
-            {
+            switch (c) {
             case 'P':
                 pos->pieces[WHITE][PAWN] = pos->pieces[WHITE][PAWN] | (1ULL << sq);
                 break;
@@ -248,7 +228,7 @@ void parse_fen(Position *pos, char *fen) {
             case 'k':
                 pos->pieces[BLACK][KING] = pos->pieces[BLACK][KING] | (1ULL << sq);
                 break;
-            
+
             default:
                 break;
             }
@@ -256,19 +236,18 @@ void parse_fen(Position *pos, char *fen) {
         }
         p++;
     }
-        
+
     // Side to move
     p++;
     char stm = *p;
-    switch (stm)
-    {
+    switch (stm) {
     case 'w':
         pos->side = WHITE;
         break;
     case 'b':
         pos->side = BLACK;
         break;
-    
+
     default:
         break;
     }
@@ -278,8 +257,7 @@ void parse_fen(Position *pos, char *fen) {
     p++;
     while ((*p != '\0') && (*p != ' ')) {
         char c = *p;
-        switch (c)
-        {
+        switch (c) {
         case '-':
             pos->castling = 0b0000;
             break;
@@ -306,17 +284,14 @@ void parse_fen(Position *pos, char *fen) {
     p++;
     if (*p == '-') {
         pos->enpassant = NOSQUARE;
-    }
-    else {
+    } else {
         file = (*p++) - 'a';
         rank = ((*p++) - '1');
         pos->enpassant = (Square)((rank * NFILES) + file);
     }
 
-
     // Compute occupancies
-    for (int piece = 0; piece < NPIECES; piece++)
-    {
+    for (int piece = 0; piece < NPIECES; piece++) {
         pos->occ[WHITE] = pos->occ[WHITE] | pos->pieces[WHITE][piece];
         pos->occ[BLACK] = pos->occ[BLACK] | pos->pieces[BLACK][piece];
     }
@@ -338,12 +313,11 @@ void make_move(Position *pos, Move move) {
     PieceType moving_piece_type = get_piece_type(moving_piece);
     PieceType target_piece_type = get_piece_type(target_piece);
 
-    switch (type)
-    {
+    switch (type) {
     case MOVE_DEFAULT:
         pos->pieces[stm][moving_piece_type] = (pos->pieces[stm][moving_piece_type] ^ (1ULL << from)) | (1ULL << to);
         pos->occ[stm] = (pos->occ[stm] ^ (1ULL << from)) | (1ULL << to);
-        
+
         if (is_capture) {
             pos->pieces[op][target_piece_type] = (pos->pieces[op][target_piece_type] ^ (1ULL << to));
             pos->occ[op] = (pos->occ[op] ^ (1ULL << to));
@@ -376,42 +350,37 @@ void make_move(Position *pos, Move move) {
 
         Square starting_rook;
         Square ending_rook;
-        if (to == G1)
-        {   
-            starting_rook = H1; ending_rook = F1;
+        if (to == G1) {
+            starting_rook = H1;
+            ending_rook = F1;
+        } else if (to == C1) {
+            starting_rook = A1;
+            ending_rook = D1;
+        } else if (to == G8) {
+            starting_rook = H8;
+            ending_rook = F8;
+        } else {
+            starting_rook = A8;
+            ending_rook = D8;
         }
-        else if (to == C1)
-        {
-            starting_rook = A1; ending_rook = D1;
-        }
-        else if (to == G8)
-        {
-            starting_rook = H8; ending_rook = F8;
-        }
-        else
-        {
-            starting_rook = A8; ending_rook = D8;
-        }       
 
         pos->pieces[stm][ROOK] = (pos->pieces[stm][ROOK] ^ (1ULL << starting_rook)) | (1ULL << ending_rook);
         pos->occ[stm] = (pos->occ[stm] ^ (1ULL << starting_rook)) | (1ULL << ending_rook);
 
         break;
-    
+
     default:
         break;
     }
 
-    if (pos->castling)
-    {
+    if (pos->castling) {
         Square king_square = (stm == WHITE) ? E1 : E8;
 
-        if (from == king_square)
-        {
+        if (from == king_square) {
             CastlingRight mask = (stm == WHITE) ? (WCASTLING_KING | WCASTLING_QUEEN) : (BCASTLING_KING | BCASTLING_QUEEN);
             pos->castling = pos->castling & ~(mask);
         }
-        
+
         if (from == A1 || to == A1) {
             CastlingRight mask = WCASTLING_QUEEN;
             pos->castling = pos->castling & ~(mask);
@@ -433,14 +402,11 @@ void make_move(Position *pos, Move move) {
         }
     }
 
-    int distance = (stm == WHITE) ? (to - from): (from - to);
-    if ((moving_piece_type == PAWN) && (distance == 16))
-    {
+    int distance = (stm == WHITE) ? (to - from) : (from - to);
+    if ((moving_piece_type == PAWN) && (distance == 16)) {
         Square enpassant = (stm == WHITE) ? (from + 8) : (from - 8);
         pos->enpassant = enpassant;
-    }
-    else
-    {
+    } else {
         pos->enpassant = NOSQUARE;
     }
 

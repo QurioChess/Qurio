@@ -35,17 +35,15 @@ U64 generate_rook_attacks(Square sq, U64 occ) {
     int file = sq % NFILES;
 
     // north
-    for (int i = 1; i < (NRANKS - rank); i++)
-    {
-        U64 target = (bb << (8*i));
+    for (int i = 1; i < (NRANKS - rank); i++) {
+        U64 target = (bb << (8 * i));
         attacks = attacks | target;
         if ((target & occ) != 0) {
             break;
         }
     }
     // west
-    for (int i = 1; i < file + 1; i++)
-    {
+    for (int i = 1; i < file + 1; i++) {
         U64 target = (bb >> i);
         attacks = attacks | target;
         if ((target & occ) != 0) {
@@ -53,8 +51,7 @@ U64 generate_rook_attacks(Square sq, U64 occ) {
         }
     }
     // east
-    for (int i = 1; i < (NFILES - file); i++)
-    {
+    for (int i = 1; i < (NFILES - file); i++) {
         U64 target = (bb << i);
         attacks = attacks | target;
         if ((target & occ) != 0) {
@@ -62,15 +59,14 @@ U64 generate_rook_attacks(Square sq, U64 occ) {
         }
     }
     // south
-    for (int i = 1; i < rank + 1; i++)
-    {
-        U64 target = (bb >> (8*i));
+    for (int i = 1; i < rank + 1; i++) {
+        U64 target = (bb >> (8 * i));
         attacks = attacks | target;
         if ((target & occ) != 0) {
             break;
         }
     }
-      
+
     return attacks;
 }
 
@@ -82,9 +78,8 @@ U64 generate_bishop_attacks(Square sq, U64 occ) {
 
     // norhthwest
     int len = (file < NRANKS - rank - 1) ? file : NRANKS - rank - 1;
-    for (int i = 1; i < len + 1; i++)
-    {
-        U64 target = (bb << (7*i));
+    for (int i = 1; i < len + 1; i++) {
+        U64 target = (bb << (7 * i));
         attacks = attacks | target;
         if ((target & occ) != 0) {
             break;
@@ -92,9 +87,8 @@ U64 generate_bishop_attacks(Square sq, U64 occ) {
     }
     // norhtheast
     len = (NFILES - file - 1 < NRANKS - rank - 1) ? NFILES - file - 1 : NRANKS - rank - 1;
-    for (int i = 1; i < len + 1; i++)
-    {
-        U64 target = (bb << (9*i));
+    for (int i = 1; i < len + 1; i++) {
+        U64 target = (bb << (9 * i));
         attacks = attacks | target;
         if ((target & occ) != 0) {
             break;
@@ -102,25 +96,23 @@ U64 generate_bishop_attacks(Square sq, U64 occ) {
     }
     // southwest
     len = (file < rank) ? file : rank;
-    for (int i = 1; i < len + 1; i++)
-    {
-        U64 target = (bb >> (9*i));
+    for (int i = 1; i < len + 1; i++) {
+        U64 target = (bb >> (9 * i));
         attacks = attacks | target;
         if ((target & occ) != 0) {
             break;
         }
     }
     // southeast
-    len = (NFILES - file - 1 < rank) ? NFILES - file - 1: rank;
-    for (int i = 1; i < len + 1; i++)
-    {
-        U64 target = (bb >> (7*i));
+    len = (NFILES - file - 1 < rank) ? NFILES - file - 1 : rank;
+    for (int i = 1; i < len + 1; i++) {
+        U64 target = (bb >> (7 * i));
         attacks = attacks | target;
         if ((target & occ) != 0) {
             break;
         }
     }
-      
+
     return attacks;
 }
 
@@ -131,20 +123,16 @@ U64 generate_queen_attacks(Square sq, U64 occ) {
 U64 generate_pawn_attacks(Square sq, Color side) {
     U64 bb = (1ULL << sq);
 
-    if (side == WHITE)
-    {
+    if (side == WHITE) {
         U64 northwest = ((bb & 0xfefefefefefefeULL) << 7);
         U64 northeast = ((bb & 0x7f7f7f7f7f7f7fULL) << 9);
         return northwest | northeast;
-    }
-    else
-    {
+    } else {
         U64 southwest = ((bb & 0xfefefefefefefe00ULL) >> 9);
         U64 southeast = ((bb & 0x7f7f7f7f7f7f7f00ULL) >> 7);
         return southwest | southeast;
     }
 }
-
 
 bool is_square_attacked_by(Position pos, Square sq, Color side) {
     U64 occ = pos.occ[WHITE] | pos.occ[BLACK];
@@ -156,34 +144,27 @@ bool is_square_attacked_by(Position pos, Square sq, Color side) {
     U64 king_attacks = generate_king_attacks(sq);
     U64 pawn_attacks = generate_pawn_attacks(sq, side ^ 1);
 
-    if (knight_attacks & pos.pieces[side][KNIGHT])
-    {
+    if (knight_attacks & pos.pieces[side][KNIGHT]) {
         return true;
     }
-    if (bishop_attacks & pos.pieces[side][BISHOP])
-    {
+    if (bishop_attacks & pos.pieces[side][BISHOP]) {
         return true;
     }
-    if (rook_attacks & pos.pieces[side][ROOK])
-    {
+    if (rook_attacks & pos.pieces[side][ROOK]) {
         return true;
     }
-    if (queen_attacks & pos.pieces[side][QUEEN])
-    {
+    if (queen_attacks & pos.pieces[side][QUEEN]) {
         return true;
     }
-    if (king_attacks & pos.pieces[side][KING])
-    {
+    if (king_attacks & pos.pieces[side][KING]) {
         return true;
     }
-    if (pawn_attacks & pos.pieces[side][PAWN])
-    {
+    if (pawn_attacks & pos.pieces[side][PAWN]) {
         return true;
     }
 
     return false;
 }
-
 
 bool is_in_check(Position pos, Color side) {
     Square king_square = lsb_index(pos.pieces[side][KING]);
@@ -192,7 +173,8 @@ bool is_in_check(Position pos, Color side) {
 }
 
 void push_move(MoveList *move_list, Move m) {
-    if (move_list->count < MAX_MOVES) move_list->moves[move_list->count++] = m;
+    if (move_list->count < MAX_MOVES)
+        move_list->moves[move_list->count++] = m;
 }
 
 void generate_knight_moves(U64 knight, U64 stm_occ, U64 op_occ, MoveList *move_list) {
@@ -202,15 +184,13 @@ void generate_knight_moves(U64 knight, U64 stm_occ, U64 op_occ, MoveList *move_l
 
         // capture
         U64 knight_captures = knight_attacks & op_occ;
-        while (knight_captures)
-        {
+        while (knight_captures) {
             Square target_sq = pop_lsb(&knight_captures);
             push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
         // quiet
         U64 knight_quiets = knight_attacks & (~op_occ);
-        while (knight_quiets)
-        {
+        while (knight_quiets) {
             Square target_sq = pop_lsb(&knight_quiets);
             push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
@@ -225,21 +205,18 @@ void generate_bishop_moves(U64 bishop, U64 stm_occ, U64 op_occ, MoveList *move_l
 
         // capture
         U64 bishop_captures = bishop_attacks & op_occ;
-        while (bishop_captures)
-        {
+        while (bishop_captures) {
             Square target_sq = pop_lsb(&bishop_captures);
             push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
         // quiet
         U64 bishop_quiets = bishop_attacks & (~op_occ);
-        while (bishop_quiets)
-        {
+        while (bishop_quiets) {
             Square target_sq = pop_lsb(&bishop_quiets);
             push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
     }
 }
-
 
 void generate_rook_moves(U64 rook, U64 stm_occ, U64 op_occ, MoveList *move_list) {
     U64 occ = stm_occ | op_occ;
@@ -249,15 +226,13 @@ void generate_rook_moves(U64 rook, U64 stm_occ, U64 op_occ, MoveList *move_list)
 
         // capture
         U64 rook_captures = rook_attacks & op_occ;
-        while (rook_captures)
-        {
+        while (rook_captures) {
             Square target_sq = pop_lsb(&rook_captures);
             push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
         // quiet
         U64 rook_quiets = rook_attacks & (~op_occ);
-        while (rook_quiets)
-        {
+        while (rook_quiets) {
             Square target_sq = pop_lsb(&rook_quiets);
             push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
@@ -272,21 +247,18 @@ void generate_queen_moves(U64 queen, U64 stm_occ, U64 op_occ, MoveList *move_lis
 
         // capture
         U64 queen_captures = queen_attacks & op_occ;
-        while (queen_captures)
-        {
+        while (queen_captures) {
             Square target_sq = pop_lsb(&queen_captures);
             push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
         // quiet
         U64 queen_quiets = queen_attacks & (~op_occ);
-        while (queen_quiets)
-        {
+        while (queen_quiets) {
             Square target_sq = pop_lsb(&queen_quiets);
             push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
     }
 }
-
 
 void generate_pawn_moves(U64 pawn, Color stm, U64 stm_occ, U64 op_occ, Square enpassant, MoveList *move_list) {
     U64 occ = stm_occ | op_occ;
@@ -294,15 +266,13 @@ void generate_pawn_moves(U64 pawn, Color stm, U64 stm_occ, U64 op_occ, Square en
     U64 double_push_rank = (stm == WHITE) ? 0xff00ULL : 0xff000000000000ULL;
     U64 promotion_rank = (stm == WHITE) ? 0xff00000000000000ULL : 0xffULL;
 
-    if (enpassant != NOSQUARE)
-    {
+    if (enpassant != NOSQUARE) {
         Color op = stm ^ 1;
         U64 enpassant_captures = generate_pawn_attacks(enpassant, op) & pawn;
 
-        while (enpassant_captures)
-        {
+        while (enpassant_captures) {
             Square from_sq = pop_lsb(&enpassant_captures);
-                push_move(move_list, encode_move(from_sq, enpassant, PROM_NONE, MOVE_ENPASSANT));
+            push_move(move_list, encode_move(from_sq, enpassant, PROM_NONE, MOVE_ENPASSANT));
         }
     }
 
@@ -312,36 +282,33 @@ void generate_pawn_moves(U64 pawn, Color stm, U64 stm_occ, U64 op_occ, Square en
 
         // capture
         U64 pawn_captures = pawn_attacks & op_occ;
-        while (pawn_captures)
-        {
+        while (pawn_captures) {
             Square target_sq = pop_lsb(&pawn_captures);
-            
+
             if ((1ULL << target_sq) & promotion_rank) {
                 push_move(move_list, encode_move(sq, target_sq, PROM_KNIGHT, MOVE_PROM));
                 push_move(move_list, encode_move(sq, target_sq, PROM_BISHOP, MOVE_PROM));
                 push_move(move_list, encode_move(sq, target_sq, PROM_ROOK, MOVE_PROM));
                 push_move(move_list, encode_move(sq, target_sq, PROM_QUEEN, MOVE_PROM));
-            }
-            else {
+            } else {
                 push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
             }
         }
-        
+
         U64 bb = (1ULL << sq);
         U64 push = (stm == WHITE) ? ((bb << 8) & (~occ)) : ((bb >> 8) & (~occ));
 
-        if (!push){
+        if (!push) {
             continue;
         }
-        
+
         Square target_sq = lsb_index(push);
         if ((1ULL << target_sq) & promotion_rank) {
             push_move(move_list, encode_move(sq, target_sq, PROM_KNIGHT, MOVE_PROM));
             push_move(move_list, encode_move(sq, target_sq, PROM_BISHOP, MOVE_PROM));
             push_move(move_list, encode_move(sq, target_sq, PROM_ROOK, MOVE_PROM));
             push_move(move_list, encode_move(sq, target_sq, PROM_QUEEN, MOVE_PROM));
-        }
-        else {
+        } else {
             push_move(move_list, encode_move(sq, target_sq, PROM_NONE, MOVE_DEFAULT));
         }
 
@@ -350,7 +317,7 @@ void generate_pawn_moves(U64 pawn, Color stm, U64 stm_occ, U64 op_occ, Square en
         }
         U64 double_push = (stm == WHITE) ? ((push << 8) & (~occ)) : ((push >> 8) & (~occ));
 
-        if (!double_push){
+        if (!double_push) {
             continue;
         }
 
@@ -359,11 +326,9 @@ void generate_pawn_moves(U64 pawn, Color stm, U64 stm_occ, U64 op_occ, Square en
             sq,
             target_sq,
             PROM_NONE,
-            MOVE_DEFAULT
-        );
+            MOVE_DEFAULT);
     }
 }
-
 
 void generate_king_moves(Square king_square, Color stm, U64 stm_occ, U64 op_occ, Position pos, MoveList *move_list) {
     Color op = stm ^ 1;
@@ -371,22 +336,19 @@ void generate_king_moves(Square king_square, Color stm, U64 stm_occ, U64 op_occ,
 
     // capture
     U64 king_captures = king_attacks & op_occ;
-    while (king_captures)
-    {
+    while (king_captures) {
         Square target_sq = pop_lsb(&king_captures);
-            push_move(move_list, encode_move(king_square, target_sq, PROM_NONE, MOVE_DEFAULT));
+        push_move(move_list, encode_move(king_square, target_sq, PROM_NONE, MOVE_DEFAULT));
     }
     // quiet
     U64 king_quiets = king_attacks & (~op_occ);
-    while (king_quiets)
-    {
+    while (king_quiets) {
         Square target_sq = pop_lsb(&king_quiets);
-            push_move(move_list, encode_move(king_square, target_sq, PROM_NONE, MOVE_DEFAULT));
+        push_move(move_list, encode_move(king_square, target_sq, PROM_NONE, MOVE_DEFAULT));
     }
 
-    //castling
-    if (is_square_attacked_by(pos, king_square, op))
-    {   
+    // castling
+    if (is_square_attacked_by(pos, king_square, op)) {
         return;
     }
 
@@ -399,41 +361,33 @@ void generate_king_moves(Square king_square, Color stm, U64 stm_occ, U64 op_occ,
     Square queen_castle_square = (stm == WHITE) ? C1 : C8;
     U64 occ = stm_occ | op_occ;
 
-    if (castling & king_side)
-    {
-        if (!(occ & king_path))
-        {
+    if (castling & king_side) {
+        if (!(occ & king_path)) {
             Square fsquare = (stm == WHITE) ? F1 : F8;
             Square gsquare = (stm == WHITE) ? G1 : G8;
-            
-            if (!(is_square_attacked_by(pos, fsquare, op) || is_square_attacked_by(pos, gsquare, op)))
-            {
+
+            if (!(is_square_attacked_by(pos, fsquare, op) || is_square_attacked_by(pos, gsquare, op))) {
                 push_move(move_list, encode_move(king_square, king_castle_square, PROM_NONE, MOVE_CASTLING));
             }
         }
     }
 
-    if (castling & queen_side)
-    {
-        if (!(occ & queen_path))
-        {
+    if (castling & queen_side) {
+        if (!(occ & queen_path)) {
             Square dsquare = (stm == WHITE) ? D1 : D8;
             Square csquare = (stm == WHITE) ? C1 : C8;
 
-            if (!(is_square_attacked_by(pos, dsquare, op) || is_square_attacked_by(pos, csquare, op)))
-            {
+            if (!(is_square_attacked_by(pos, dsquare, op) || is_square_attacked_by(pos, csquare, op))) {
                 push_move(move_list, encode_move(king_square, queen_castle_square, PROM_NONE, MOVE_CASTLING));
             }
         }
     }
 }
 
-
-
 void generate_pseudo_legals(Position pos, MoveList *move_list) {
     Color stm = pos.side;
     Color op = stm ^ 1;
-    
+
     // pawn
     U64 pawn = pos.pieces[stm][PAWN];
     generate_pawn_moves(pawn, stm, pos.occ[stm], pos.occ[op], pos.enpassant, move_list);
@@ -458,14 +412,11 @@ void generate_pseudo_legals(Position pos, MoveList *move_list) {
     U64 king = pos.pieces[stm][KING];
     Square king_square = lsb_index(king);
     generate_king_moves(king_square, stm, pos.occ[stm], pos.occ[op], pos, move_list);
-
 }
-
 
 void print_move_list(MoveList move_list) {
     printf("Move List (%i):\n", move_list.count);
-    for (int i = 0; i < move_list.count; i++)
-    {
+    for (int i = 0; i < move_list.count; i++) {
         printf("%i: ", i);
         print_move(move_list.moves[i]);
         printf("\n");
