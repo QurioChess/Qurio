@@ -9,7 +9,7 @@ bool should_stop(ThreadContext *thread_ctx) {
     return false;
 }
 
-Score negamax(Position pos, ThreadContext *thread_ctx, int depth, Move *best_move) {
+Score negamax(Position pos, Score alpha, Score beta, int depth, ThreadContext *thread_ctx, Move *best_move) {
     if (should_stop(thread_ctx))
         return INVALID_SCORE;
 
@@ -29,13 +29,20 @@ Score negamax(Position pos, ThreadContext *thread_ctx, int depth, Move *best_mov
             continue;
         legal_moves_count++;
 
-        int value = -negamax(next_pos, thread_ctx, depth - 1, NULL);
+        int value = -negamax(next_pos, -beta, -alpha, depth - 1, thread_ctx, NULL);
 
         if (value > best_value) {
             best_value = (value > MATE_SCORE) ? MATE_SCORE : value;
             if (best_move != NULL) {
                 *best_move = move_list.moves[i];
             }
+        }
+
+        if (value > alpha) {
+            alpha = value;
+
+            if (alpha >= beta)
+                break;
         }
     }
 
@@ -54,7 +61,7 @@ void *iterative_deepening(void *arg) {
     ThreadContext *thread_ctx = (ThreadContext *)arg;
     for (int d = 1; d < thread_ctx->depth + 1; d++) {
         Move current_best;
-        Score current_score = negamax(thread_ctx->pos, thread_ctx, d, &current_best);
+        Score current_score = negamax(thread_ctx->pos, -MATE_SCORE, +MATE_SCORE, d, thread_ctx, &current_best);
         printf("Search at (depth: %i) (nodes: %" PRIu64 ") (value: %i): ", d, thread_ctx->nodes, current_score);
         print_move(current_best);
         printf("\n");
