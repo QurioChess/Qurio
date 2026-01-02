@@ -84,7 +84,6 @@ void *iterative_deepening(void *arg) {
         print_move(current_best);
         printf("\n");
 
-        fflush(stdout);
     }
     return NULL;
 }
