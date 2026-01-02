@@ -101,7 +101,8 @@ enum CastlingRightConst {
 enum ScoreConst {
     PAT_SCORE = 0,
     MATE_SCORE = INT_MAX - 1024,
-    INVALID_SCORE = INT_MIN
+    INVALID_SCORE = INT_MIN,
+    MATE_SCORE_BOUNDARY = INT_MAX - 1024 - MAX_DEPTH
 };
 
 static const char *const PIECE_NAMES[] = {"P", "N", "B", "R", "Q", "K"};

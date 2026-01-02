@@ -9,7 +9,7 @@ bool should_stop(ThreadContext *thread_ctx) {
     return false;
 }
 
-Score negamax(Position pos, Score alpha, Score beta, int depth, ThreadContext *thread_ctx, Move *best_move) {
+Score negamax(Position pos, Score alpha, Score beta, int depth, int ply, ThreadContext *thread_ctx, Move *best_move) {
     if (should_stop(thread_ctx))
         return INVALID_SCORE;
 
@@ -29,7 +29,7 @@ Score negamax(Position pos, Score alpha, Score beta, int depth, ThreadContext *t
             continue;
         legal_moves_count++;
 
-        int value = -negamax(next_pos, -beta, -alpha, depth - 1, thread_ctx, NULL);
+        int value = -negamax(next_pos, -beta, -alpha, depth - 1, ply + 1, thread_ctx, NULL);
 
         if (value > best_value) {
             best_value = (value > MATE_SCORE) ? MATE_SCORE : value;
@@ -48,7 +48,7 @@ Score negamax(Position pos, Score alpha, Score beta, int depth, ThreadContext *t
 
     if (legal_moves_count == 0) {
         if (is_in_check(pos, pos.side)) {
-            return -MATE_SCORE;
+            return -(MATE_SCORE - ply);
         } else {
             return PAT_SCORE;
         }
@@ -61,10 +61,7 @@ void *iterative_deepening(void *arg) {
     ThreadContext *thread_ctx = (ThreadContext *)arg;
     for (int d = 1; d < thread_ctx->depth + 1; d++) {
         Move current_best;
-        Score current_score = negamax(thread_ctx->pos, -MATE_SCORE, +MATE_SCORE, d, thread_ctx, &current_best);
-        printf("Search at (depth: %i) (nodes: %" PRIu64 ") (value: %i): ", d, thread_ctx->nodes, current_score);
-        print_move(current_best);
-        printf("\n");
+        Score current_score = negamax(thread_ctx->pos, -MATE_SCORE, +MATE_SCORE, d, 0, thread_ctx, &current_best);
 
         if ((current_score == INVALID_SCORE) || (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed)))
             break;
@@ -72,6 +69,22 @@ void *iterative_deepening(void *arg) {
         thread_ctx->best_move = current_best;
         thread_ctx->score = current_score;
         thread_ctx->completed_depth = d;
+
+        printf("info depth %d nodes %" PRIu64 " ", d, thread_ctx->nodes);
+
+        if (current_score > MATE_SCORE_BOUNDARY) {
+            printf("score mate %d ", MATE_SCORE - current_score);
+        } else if (current_score < -MATE_SCORE_BOUNDARY) {
+            printf("score mate %d ", -(MATE_SCORE + current_score));
+        } else {
+            printf("score cp %d ", current_score);
+        }
+
+        printf("pv ");
+        print_move(current_best);
+        printf("\n");
+
+        fflush(stdout);
     }
     return NULL;
 }
@@ -81,8 +94,6 @@ void *main_search(void *arg) {
 
     ThreadContext *thread_ctx = (ThreadContext *)arg;
     if (thread_ctx->score != INVALID_SCORE) {
-        printf("info: nodes: %" PRIu64 "\n", thread_ctx->nodes);
-        printf("info: completed_depth: %i\n", thread_ctx->completed_depth);
         printf("bestmove ");
         print_move(thread_ctx->best_move);
         printf("\n");

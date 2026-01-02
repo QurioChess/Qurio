@@ -13,7 +13,7 @@
 #include "time_management.h"
 #include "types.h"
 
-Score negamax(Position pos, Score alpha, Score beta, int depth, ThreadContext *thread_ctx, Move *best_move);
+Score negamax(Position pos, Score alpha, Score beta, int depth, int ply, ThreadContext *thread_ctx, Move *best_move);
 void *iterative_deepening(void *arg);
 void *main_search(void *arg);
 bool should_stop(ThreadContext *thread_ctx);
