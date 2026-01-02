@@ -1,5 +1,9 @@
 #pragma once
 
+#if !defined(_WIN32) && !defined(_WIN64)
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include <stdint.h>
 
 #if defined(_WIN32) || defined(_WIN64)
