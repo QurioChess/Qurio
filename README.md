@@ -9,8 +9,8 @@ Qurio is a work-in-progress chess engine built from scratch. The goal is to lear
 Once the fundamentals are implemented (negamax + alpha-beta pruning), the engine will progressively add the following search enhancements:
 
 - [x] Iterative Deepening
-- [ ] Basic Move Ordering (captures via MVV-LVA)
-- [ ] Quiescence Search
+- [x] Basic Move Ordering (captures via MVV-LVA)
+- [x] Quiescence Search
 - [ ] Transposition Table (sort TT move first)
 - [ ] Butterfly history heuristic
 - [ ] PVS
