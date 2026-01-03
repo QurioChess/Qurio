@@ -19,12 +19,14 @@ Score negamax(Position pos, Score alpha, Score beta, int depth, ThreadContext *t
 
     int legal_moves_count = 0;
     MoveList move_list = {.count = 0};
-    generate_pseudo_legals(pos, &move_list);
+    generate_pseudo_legals(pos, &move_list, false);
+    score_moves(pos, &move_list);
 
     int best_value = -MATE_SCORE;
     for (int i = 0; i < move_list.count; i++) {
         Position next_pos = pos;
-        make_move(&next_pos, move_list.moves[i]);
+        Move move = get_next_move(&move_list, i);
+        make_move(&next_pos, move);
         if (is_in_check(next_pos, next_pos.side ^ 1))
             continue;
         legal_moves_count++;
@@ -34,7 +36,7 @@ Score negamax(Position pos, Score alpha, Score beta, int depth, ThreadContext *t
         if (value > best_value) {
             best_value = (value > MATE_SCORE) ? MATE_SCORE : value;
             if (best_move != NULL) {
-                *best_move = move_list.moves[i];
+                *best_move = move;
             }
         }
 

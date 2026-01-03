@@ -8,6 +8,7 @@
 #include "board.h"
 #include "evaluation.h"
 #include "move.h"
+#include "move_ordering.h"
 #include "movegen.h"
 #include "search_context.h"
 #include "time_management.h"
