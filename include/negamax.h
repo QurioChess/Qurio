@@ -13,7 +13,14 @@
 #include "time_management.h"
 #include "types.h"
 
-Score negamax(Position pos, Score alpha, Score beta, int depth, ThreadContext *thread_ctx, Move *best_move);
+typedef struct
+{
+    U64 hash_stack[MAX_DEPTH];
+    int ply;
+} SearchState;
+
+Score negamax(Position pos, Score alpha, Score beta, int depth, SearchState *search_state, ThreadContext *thread_ctx, Move *best_move);
 void *iterative_deepening(void *arg);
 void *main_search(void *arg);
 bool should_stop(ThreadContext *thread_ctx);
+bool is_repetition(SearchState *search_state);
