@@ -13,6 +13,17 @@ U64 perft(Position pos, int depth) {
         make_move(&next_pos, move_list.moves[i]);
         if (is_in_check(next_pos, next_pos.side ^ 1))
             continue;
+
+#ifdef DEBUG
+        U64 correct_hash = compute_hash(next_pos);
+        if (correct_hash != next_pos.hash) {
+            fprintf(stderr, "Hash mismatch at move: ");
+            print_move(move_list.moves[i]);
+            fprintf(stderr, " Expected: %" PRIu64 ", Got: %" PRIu64 "\n", correct_hash, next_pos.hash);
+            abort();
+        }
+#endif
+
         nodes += perft(next_pos, depth - 1);
     }
     return nodes;
@@ -30,6 +41,16 @@ void divide_perft(Position pos, int depth) {
         make_move(&next_pos, move_list.moves[i]);
         if (is_in_check(next_pos, next_pos.side ^ 1))
             continue;
+
+#ifdef DEBUG
+        U64 correct_hash = compute_hash(next_pos);
+        if (correct_hash != next_pos.hash) {
+            fprintf(stderr, "Hash mismatch at move: ");
+            print_move(move_list.moves[i]);
+            fprintf(stderr, " Expected: %" PRIu64 ", Got: %" PRIu64 "\n", correct_hash, next_pos.hash);
+            abort();
+        }
+#endif
 
         U64 subnodes = perft(next_pos, depth - 1);
         print_move(move_list.moves[i]);

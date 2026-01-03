@@ -153,6 +153,10 @@ void command_perft(EngineState *engine, char *perft_options) {
     divide_perft(engine->pos, depth);
 }
 
+void command_pprint(EngineState *engine) {
+    print_position(engine->pos);
+}
+
 void main_loop() {
     char line[2048];
 
@@ -202,6 +206,11 @@ void main_loop() {
 
         if (strncmp(line, "bench", 5) == 0) {
             bench();
+            continue;
+        }
+
+        if (strncmp(line, "pprint", 6) == 0) {
+            command_pprint(&engine);
             continue;
         }
     }

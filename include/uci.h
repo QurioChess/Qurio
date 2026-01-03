@@ -27,3 +27,4 @@ void command_ucinewgame(EngineState *engine);
 void command_isready();
 
 void command_perft(EngineState *engine, char *perft_options);
+void command_pprint(EngineState *engine);
