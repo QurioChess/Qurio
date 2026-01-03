@@ -19,7 +19,7 @@ typedef struct
 {
     Position pos;
     SearchContext *search_ctx;
-    uint64_t nodes;
+    U64 nodes;
     Move best_move;
     Score score;
     int depth;

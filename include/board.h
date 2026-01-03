@@ -6,11 +6,13 @@
 
 #include "move.h"
 #include "types.h"
+#include "zobrist.h"
 
 typedef struct
 {
     U64 pieces[2][NPIECES];
     U64 occ[2];
+    U64 hash;
     CastlingRight castling;
     Color side;
     Square enpassant;
@@ -22,6 +24,8 @@ Piece get_piece_on(Position pos, Square sq);
 void print_bitboard(U64 bb);
 void print_position_bitboard(Position pos);
 void print_position(Position pos);
+
+U64 compute_hash(Position pos);
 
 void set_start_position(Position *pos);
 void parse_fen(Position *pos, char *fen);
