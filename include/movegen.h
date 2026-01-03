@@ -12,6 +12,7 @@
 typedef struct
 {
     Move moves[MAX_MOVES];
+    MoveScore scores[MAX_MOVES];
     int count;
 } MoveList;
 
@@ -26,13 +27,13 @@ bool is_in_check(Position pos, Color side);
 
 void push_move(MoveList *move_list, Move m);
 
-void generate_knight_moves(U64 knight, U64 stm_occ, U64 op_occ, MoveList *move_list);
-void generate_bishop_moves(U64 bishop, U64 stm_occ, U64 op_occ, MoveList *move_list);
-void generate_rook_moves(U64 rook, U64 stm_occ, U64 op_occ, MoveList *move_list);
-void generate_queen_moves(U64 queen, U64 stm_occ, U64 op_occ, MoveList *move_list);
-void generate_pawn_moves(U64 pawn, Color stm, U64 stm_occ, U64 op_occ, Square enpassant, MoveList *move_list);
-void generate_king_moves(Square king_square, Color stm, U64 stm_occ, U64 op_occ, Position pos, MoveList *move_list);
+void generate_knight_moves(U64 knight, U64 stm_occ, U64 op_occ, MoveList *move_list, bool only_non_quiets);
+void generate_bishop_moves(U64 bishop, U64 stm_occ, U64 op_occ, MoveList *move_list, bool only_non_quiets);
+void generate_rook_moves(U64 rook, U64 stm_occ, U64 op_occ, MoveList *move_list, bool only_non_quiets);
+void generate_queen_moves(U64 queen, U64 stm_occ, U64 op_occ, MoveList *move_list, bool only_non_quiets);
+void generate_pawn_moves(U64 pawn, Color stm, U64 stm_occ, U64 op_occ, Square enpassant, MoveList *move_list, bool only_non_quiets);
+void generate_king_moves(Square king_square, Color stm, U64 stm_occ, U64 op_occ, Position pos, MoveList *move_list, bool only_non_quiets);
 
-void generate_pseudo_legals(Position pos, MoveList *move_list);
+void generate_pseudo_legals(Position pos, MoveList *move_list, bool only_non_quiets);
 
 void print_move_list(MoveList move_list);

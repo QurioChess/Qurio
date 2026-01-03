@@ -7,7 +7,7 @@ U64 perft(Position pos, int depth) {
     if (depth == 0)
         return 1ULL;
 
-    generate_pseudo_legals(pos, &move_list);
+    generate_pseudo_legals(pos, &move_list, false);
     for (int i = 0; i < move_list.count; i++) {
         Position next_pos = pos;
         make_move(&next_pos, move_list.moves[i]);
@@ -24,7 +24,7 @@ void divide_perft(Position pos, int depth) {
     MoveList move_list = {.count = 0};
     U64 nodes = 0ULL;
 
-    generate_pseudo_legals(pos, &move_list);
+    generate_pseudo_legals(pos, &move_list, false);
     for (int i = 0; i < move_list.count; i++) {
         Position next_pos = pos;
         make_move(&next_pos, move_list.moves[i]);

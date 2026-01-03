@@ -20,7 +20,7 @@ void command_position(EngineState *engine, char *position_options) {
             printf("Invalid move: '%s', Current position:\n", move_token);
             print_position(*pos);
             MoveList move_list = {.count = 0};
-            generate_pseudo_legals(*pos, &move_list);
+            generate_pseudo_legals(*pos, &move_list, false);
             printf("Available moves: \n");
             print_move_list(move_list);
             return;
@@ -33,7 +33,7 @@ void command_position(EngineState *engine, char *position_options) {
 
 Move parse_move(Position pos, char *move_token) {
     MoveList move_list = {.count = 0};
-    generate_pseudo_legals(pos, &move_list);
+    generate_pseudo_legals(pos, &move_list, false);
 
     int from_file = move_token[0] - 'a';
     int from_rank = (move_token[1] - '1');

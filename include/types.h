@@ -35,6 +35,7 @@ typedef uint8_t PromotionType;
 typedef uint8_t CastlingRight;
 typedef uint8_t MoveType;
 typedef int Score;
+typedef int MoveScore;
 
 enum ColorConst {
     WHITE = 0,
