@@ -9,13 +9,13 @@ bool should_stop(ThreadContext *thread_ctx) {
     return false;
 }
 
-Score negamax(Position pos, Score alpha, Score beta, int depth, ThreadContext *thread_ctx, Move *best_move) {
+Score negamax(Position pos, Score alpha, Score beta, int depth, int ply, ThreadContext *thread_ctx, Move *best_move) {
     if (should_stop(thread_ctx))
         return INVALID_SCORE;
 
     thread_ctx->nodes++;
     if (depth == 0)
-        return evaluate(pos);
+        return quiescence(pos, alpha, beta, ply, thread_ctx);
 
     int legal_moves_count = 0;
     MoveList move_list = {.count = 0};
@@ -31,7 +31,7 @@ Score negamax(Position pos, Score alpha, Score beta, int depth, ThreadContext *t
             continue;
         legal_moves_count++;
 
-        int value = -negamax(next_pos, -beta, -alpha, depth - 1, thread_ctx, NULL);
+        int value = -negamax(next_pos, -beta, -alpha, depth - 1, ply + 1, thread_ctx, NULL);
 
         if (value > best_value) {
             best_value = (value > MATE_SCORE) ? MATE_SCORE : value;
@@ -59,11 +59,57 @@ Score negamax(Position pos, Score alpha, Score beta, int depth, ThreadContext *t
     return best_value;
 }
 
+Score quiescence(Position pos, Score alpha, Score beta, int ply, ThreadContext *thread_ctx) {
+    if (should_stop(thread_ctx))
+        return INVALID_SCORE;
+
+    thread_ctx->nodes++;
+    Score static_eval = evaluate(pos);
+    
+    if (static_eval >= beta)
+        return static_eval;
+    if (static_eval > alpha)
+        alpha = static_eval;
+    
+    if (ply > MAX_DEPTH)
+        return static_eval;
+    
+    MoveList move_list = {.count = 0};
+    generate_pseudo_legals(pos, &move_list, true);
+    score_moves(pos, &move_list);
+    
+    Score best_value = static_eval;
+    for (int i = 0; i < move_list.count; i++) {
+        Position next_pos = pos;
+        Move move = get_next_move(&move_list, i);
+
+        make_move(&next_pos, move);
+        if (is_in_check(next_pos, next_pos.side ^ 1))
+            continue;
+        
+        int value = -quiescence(next_pos, -beta, -alpha, ply + 1, thread_ctx);
+
+        if (value > best_value) {
+            best_value = (value > MATE_SCORE) ? MATE_SCORE : value;
+        }
+
+        if (value > alpha) {
+            alpha = value;
+
+            if (alpha >= beta)
+                break;
+        }
+    }
+
+    return best_value;
+}
+
+
 void *iterative_deepening(void *arg) {
     ThreadContext *thread_ctx = (ThreadContext *)arg;
     for (int d = 1; d < thread_ctx->depth + 1; d++) {
         Move current_best;
-        Score current_score = negamax(thread_ctx->pos, -MATE_SCORE, +MATE_SCORE, d, thread_ctx, &current_best);
+        Score current_score = negamax(thread_ctx->pos, -MATE_SCORE, +MATE_SCORE, d, 0, thread_ctx, &current_best);
         printf("Search at (depth: %i) (nodes: %" PRIu64 ") (value: %i): ", d, thread_ctx->nodes, current_score);
         print_move(current_best);
         printf("\n");
