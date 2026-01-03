@@ -11,7 +11,7 @@ Once the fundamentals are implemented (negamax + alpha-beta pruning), the engine
 - [x] Iterative Deepening
 - [x] Basic Move Ordering (captures via MVV-LVA)
 - [x] Quiescence Search
-- [ ] Transposition Table (sort TT move first)
+- [x] Transposition Table (sort TT move first)
 - [ ] Butterfly history heuristic
 - [ ] PVS
 - [ ] Aspiration windows

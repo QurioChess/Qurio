@@ -14,6 +14,7 @@
 #include "search_engine.h"
 #include "time_management.h"
 #include "time_util.h"
+#include "transposition_table.h"
 #include "types.h"
 
 void main_loop();

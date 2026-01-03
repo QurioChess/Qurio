@@ -36,6 +36,7 @@ typedef uint8_t CastlingRight;
 typedef uint8_t MoveType;
 typedef int Score;
 typedef int MoveScore;
+typedef uint8_t Depth;
 
 enum ColorConst {
     WHITE = 0,
