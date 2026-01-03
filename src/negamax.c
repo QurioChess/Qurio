@@ -9,15 +9,35 @@ bool should_stop(ThreadContext *thread_ctx) {
     return false;
 }
 
-Score negamax(Position pos, Score alpha, Score beta, Depth depth, int ply, ThreadContext *thread_ctx, Move *pv_move) {
+bool is_repetition(SearchState *search_state) {
+    int current_ply = search_state->ply;
+
+    if (current_ply == 0)
+        return false;
+
+    U64 current_hash = search_state->hash_stack[current_ply];
+    int target_ply = current_ply - 1;
+    while (target_ply >= 0) {
+        if (search_state->hash_stack[target_ply] == current_hash)
+            return true;
+        target_ply--;
+    }
+    return false;
+}
+
+Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *search_state, ThreadContext *thread_ctx, Move *pv_move) {
     if (should_stop(thread_ctx))
         return INVALID_SCORE;
     thread_ctx->nodes++;
 
+    if (is_repetition(search_state)) {
+        return DRAW_SCORE;
+    }
+
     TTEntry *entry = probe_tt(thread_ctx->table, pos.hash);
     Move tt_move = INVALID_MOVE;
     if (entry != NULL) {
-        if ((ply != 0) && (entry->depth >= depth)) {
+        if ((search_state->ply != 0) && (entry->depth >= depth)) {
             if (entry->type == EXACT)
                 return entry->score;
             if ((entry->type == LOWER_BOUND) && (entry->score >= beta))
@@ -29,7 +49,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, int ply, Threa
     }
 
     if (depth == 0)
-        return quiescence(pos, alpha, beta, ply, thread_ctx);
+        return quiescence(pos, alpha, beta, search_state, thread_ctx);
 
     int legal_moves_count = 0;
     MoveList move_list = {.count = 0};
@@ -48,7 +68,9 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, int ply, Threa
             continue;
         legal_moves_count++;
 
-        int value = -negamax(next_pos, -beta, -alpha, depth - 1, ply + 1, thread_ctx, NULL);
+        search_state->hash_stack[++search_state->ply] = next_pos.hash;
+        int value = -negamax(next_pos, -beta, -alpha, depth - 1, search_state, thread_ctx, NULL);
+        search_state->ply--;
 
         if (value > best_value) {
             best_value = (value > MATE_SCORE) ? MATE_SCORE : value;
@@ -70,7 +92,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, int ply, Threa
         if (is_in_check(pos, pos.side)) {
             return -MATE_SCORE;
         } else {
-            return PAT_SCORE;
+            return DRAW_SCORE;
         }
     }
 
@@ -83,7 +105,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, int ply, Threa
     return best_value;
 }
 
-Score quiescence(Position pos, Score alpha, Score beta, int ply, ThreadContext *thread_ctx) {
+Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_state, ThreadContext *thread_ctx) {
     if (should_stop(thread_ctx))
         return INVALID_SCORE;
     thread_ctx->nodes++;
@@ -107,7 +129,7 @@ Score quiescence(Position pos, Score alpha, Score beta, int ply, ThreadContext *
     if (static_eval > alpha)
         alpha = static_eval;
 
-    if (ply > MAX_DEPTH)
+    if (search_state->ply > MAX_DEPTH)
         return static_eval;
 
     MoveList move_list = {.count = 0};
@@ -123,7 +145,9 @@ Score quiescence(Position pos, Score alpha, Score beta, int ply, ThreadContext *
         if (is_in_check(next_pos, next_pos.side ^ 1))
             continue;
 
-        int value = -quiescence(next_pos, -beta, -alpha, ply + 1, thread_ctx);
+        search_state->hash_stack[++search_state->ply] = next_pos.hash;
+        int value = -quiescence(next_pos, -beta, -alpha, search_state, thread_ctx);
+        search_state->ply--;
 
         if (value > best_value) {
             best_value = (value > MATE_SCORE) ? MATE_SCORE : value;
@@ -142,9 +166,13 @@ Score quiescence(Position pos, Score alpha, Score beta, int ply, ThreadContext *
 
 void *iterative_deepening(void *arg) {
     ThreadContext *thread_ctx = (ThreadContext *)arg;
+    SearchState search_state;
     for (Depth d = 1;; d++) {
         Move current_best;
-        Score current_score = negamax(thread_ctx->pos, -MATE_SCORE, +MATE_SCORE, d, 0, thread_ctx, &current_best);
+        search_state.ply = 0;
+        search_state.hash_stack[0] = thread_ctx->pos.hash;
+
+        Score current_score = negamax(thread_ctx->pos, -MATE_SCORE, +MATE_SCORE, d, &search_state, thread_ctx, &current_best);
         printf("Search at (depth: %" PRIu8 ") (nodes: %" PRIu64 ") (value: %i): ", d, thread_ctx->nodes, current_score);
         print_move(current_best);
         printf("\n");
