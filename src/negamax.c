@@ -53,6 +53,9 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, int ply, Threa
         if (value > best_value) {
             best_value = (value > MATE_SCORE) ? MATE_SCORE : value;
             best_move = move;
+            if (pv_move != NULL) {
+                *pv_move = move;
+            }
         }
 
         if (value > alpha) {
@@ -75,10 +78,6 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, int ply, Threa
         EntryType type = (best_value >= beta) ? UPPER_BOUND : (best_value > initial_alpha) ? EXACT
                                                                                            : LOWER_BOUND;
         store_tt(thread_ctx->table, pos.hash, depth, best_move, best_value, type);
-
-        if (pv_move != NULL) {
-            *pv_move = best_move;
-        }
     }
 
     return best_value;
