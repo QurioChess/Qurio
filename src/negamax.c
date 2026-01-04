@@ -142,10 +142,10 @@ Score quiescence(Position pos, Score alpha, Score beta, int ply, ThreadContext *
 
 void *iterative_deepening(void *arg) {
     ThreadContext *thread_ctx = (ThreadContext *)arg;
-    for (Depth d = 1; d < thread_ctx->depth + 1; d++) {
+    for (Depth d = 1;; d++) {
         Move current_best;
         Score current_score = negamax(thread_ctx->pos, -MATE_SCORE, +MATE_SCORE, d, 0, thread_ctx, &current_best);
-        printf("Search at (depth: %i) (nodes: %" PRIu64 ") (value: %i): ", d, thread_ctx->nodes, current_score);
+        printf("Search at (depth: %" PRIu8 ") (nodes: %" PRIu64 ") (value: %i): ", d, thread_ctx->nodes, current_score);
         print_move(current_best);
         printf("\n");
 
@@ -155,6 +155,9 @@ void *iterative_deepening(void *arg) {
         thread_ctx->best_move = current_best;
         thread_ctx->score = current_score;
         thread_ctx->completed_depth = d;
+
+        if (d == thread_ctx->depth)
+            break;
     }
     return NULL;
 }
