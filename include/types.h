@@ -5,7 +5,7 @@
 
 static const int NRANKS = 8;
 static const int NFILES = 8;
-static const int MAX_DEPTH = 255;
+#define MAX_DEPTH 255
 
 typedef uint64_t U64;
 
@@ -101,7 +101,7 @@ enum CastlingRightConst {
     BCASTLING_QUEEN = 0b1000,
 };
 enum ScoreConst {
-    PAT_SCORE = 0,
+    DRAW_SCORE = 0,
     MATE_SCORE = INT_MAX - 1024,
     INVALID_SCORE = INT_MIN
 };
