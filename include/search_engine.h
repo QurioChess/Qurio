@@ -19,8 +19,11 @@ typedef struct
     ThreadContext thread_ctxs[MAX_THREADS];
     bool search_running;
     TT table;
+    GameHistory history;
 } EngineState;
 
 void start_search(EngineState *engine, Depth depth);
 void stop_search(EngineState *engine);
 void wait_search(EngineState *engine);
+
+void push_hash(GameHistory *history, U64 hash);

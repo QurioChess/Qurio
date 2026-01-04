@@ -11,6 +11,7 @@ void start_search(EngineState *engine, Depth depth) {
     ThreadContext *thread_ctx = &engine->thread_ctxs[0];
     thread_ctx->pos = engine->pos;
     thread_ctx->search_ctx = &engine->search_ctx;
+    thread_ctx->history = &engine->history;
     thread_ctx->table = &engine->table;
     thread_ctx->nodes = 0ULL;
     thread_ctx->best_move = INVALID_MOVE;
@@ -37,4 +38,10 @@ void wait_search(EngineState *engine) {
 
     pthread_join(engine->search_threads[0], NULL);
     engine->search_running = false;
+}
+
+void push_hash(GameHistory *history, U64 hash) {
+    if (history->count < MAX_GAME_LENGTH) {
+        history->hash_stack[history->count++] = hash;
+    }
 }

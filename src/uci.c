@@ -27,6 +27,8 @@ void command_position(EngineState *engine, char *position_options) {
         }
 
         make_move(pos, move);
+        push_hash(&engine->history, engine->pos.hash);
+
         move_token = strtok(NULL, " ");
     }
 }
