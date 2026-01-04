@@ -26,4 +26,5 @@ void start_search(EngineState *engine, Depth depth);
 void stop_search(EngineState *engine);
 void wait_search(EngineState *engine);
 
+void reset_history(GameHistory *history);
 void push_hash(GameHistory *history, U64 hash);

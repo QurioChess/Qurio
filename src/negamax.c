@@ -10,7 +10,6 @@ bool should_stop(ThreadContext *thread_ctx) {
 }
 
 bool is_repetition(SearchState *search_state, GameHistory *history, HalfMove limit) {
-
     int current_ply = search_state->ply;
     if (current_ply == 0)
         return false;

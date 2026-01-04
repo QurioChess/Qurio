@@ -45,3 +45,7 @@ void push_hash(GameHistory *history, U64 hash) {
         history->hash_stack[history->count++] = hash;
     }
 }
+
+void reset_history(GameHistory *history) {
+    history->count = 0;
+}
