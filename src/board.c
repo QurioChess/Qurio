@@ -108,6 +108,7 @@ void print_position(Position pos) {
     } else {
         printf("En passant square: NONE\n");
     }
+    printf("Half move clock: %i\n", pos.halfmove_clock);
     printf("Hash: %" PRIu64 "\n", pos.hash);
 }
 
@@ -166,6 +167,7 @@ void set_start_position(Position *pos) {
     pos->side = WHITE;
     pos->castling = 0b1111;
     pos->enpassant = NOSQUARE;
+    pos->halfmove_clock = 0;
 
     pos->hash = compute_hash(*pos);
 }
@@ -316,6 +318,10 @@ void parse_fen(Position *pos, char *fen) {
         pos->enpassant = (Square)((rank * NFILES) + file);
     }
 
+    // Half move clock
+    p++;
+    pos->halfmove_clock = atoi(p);
+
     // Compute occupancies
     for (PieceType piece_type = 0; piece_type < NPIECES; piece_type++) {
         pos->occ[WHITE] = pos->occ[WHITE] | pos->pieces[WHITE][piece_type];
@@ -450,6 +456,12 @@ void make_move(Position *pos, Move move) {
         pos->hash ^= get_enpassant_zkey(pos->enpassant % NFILES);
     } else {
         pos->enpassant = NOSQUARE;
+    }
+
+    if (is_capture || moving_piece_type == PAWN) {
+        pos->halfmove_clock = 0;
+    } else {
+        pos->halfmove_clock++;
     }
 
     pos->side = op;

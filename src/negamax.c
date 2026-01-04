@@ -9,17 +9,29 @@ bool should_stop(ThreadContext *thread_ctx) {
     return false;
 }
 
-bool is_repetition(SearchState *search_state) {
+bool is_repetition(SearchState *search_state, GameHistory *history, HalfMove limit) {
     int current_ply = search_state->ply;
-
     if (current_ply == 0)
         return false;
 
+    if (limit >= 100)
+        return true;
+
     U64 current_hash = search_state->hash_stack[current_ply];
-    for (int i = current_ply - 2; i >= 0; i -= 2) {
-        if (search_state->hash_stack[i] == current_hash)
-            return true;
+    HalfMove total_half_moves = history->count + current_ply;
+
+    for (HalfMove dist = 2; (dist < total_half_moves) && (dist <= limit); dist += 2) {
+        if (dist <= current_ply) {
+            if (search_state->hash_stack[current_ply - dist] == current_hash)
+                return true;
+        } else {
+            HalfMove history_dist = dist - current_ply;
+            int history_index = (history->count - 1) - history_dist;
+            if ((history_index >= 0) && (history->hash_stack[history_index] == current_hash))
+                return true;
+        }
     }
+
     return false;
 }
 
@@ -28,7 +40,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         return INVALID_SCORE;
     thread_ctx->nodes++;
 
-    if (is_repetition(search_state)) {
+    if (is_repetition(search_state, thread_ctx->history, pos.halfmove_clock)) {
         return DRAW_SCORE;
     }
 

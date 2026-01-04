@@ -12,6 +12,12 @@
 
 typedef struct
 {
+    U64 hash_stack[MAX_GAME_LENGTH];
+    HalfMove count;
+} GameHistory;
+
+typedef struct
+{
     atomic_bool stop;
     TimeManagement tm;
 } SearchContext;
@@ -20,6 +26,7 @@ typedef struct
 {
     Position pos;
     SearchContext *search_ctx;
+    GameHistory *history;
     TT *table;
     U64 nodes;
     Move best_move;

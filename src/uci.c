@@ -2,11 +2,15 @@
 
 void command_position(EngineState *engine, char *position_options) {
     Position *pos = &engine->pos;
+    GameHistory *history = &engine->history;
+    reset_history(history);
+
     if (strncmp(position_options, "fen", 3) == 0) {
         parse_fen(pos, position_options + 4);
     } else {
         set_start_position(pos);
     }
+    push_hash(history, pos->hash);
 
     char *moves = strstr(position_options, "moves");
     if (moves == NULL)
@@ -27,6 +31,8 @@ void command_position(EngineState *engine, char *position_options) {
         }
 
         make_move(pos, move);
+        push_hash(history, pos->hash);
+
         move_token = strtok(NULL, " ");
     }
 }

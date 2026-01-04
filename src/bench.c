@@ -13,7 +13,10 @@ void bench() {
     uint64_t start = get_time_ms();
     U64 nodes = 0ULL;
     for (int i = 0; i < NFENS; i++) {
+        reset_history(&engine.history);
         parse_fen(&engine.pos, BENCH_FENS[i]);
+        push_hash(&engine.history, engine.pos.hash);
+
         uint64_t start_time = get_time_ms();
         compute_time_to_search(&engine.search_ctx.tm, start_time, time, inc, movestogo, use_time_control);
 

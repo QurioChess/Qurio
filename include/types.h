@@ -6,6 +6,7 @@
 static const int NRANKS = 8;
 static const int NFILES = 8;
 #define MAX_DEPTH 255
+#define MAX_GAME_LENGTH 1024
 
 typedef uint64_t U64;
 
@@ -37,6 +38,7 @@ typedef uint8_t MoveType;
 typedef int Score;
 typedef int MoveScore;
 typedef uint8_t Depth;
+typedef int HalfMove;
 
 enum ColorConst {
     WHITE = 0,

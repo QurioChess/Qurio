@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "move.h"
 #include "types.h"
@@ -13,6 +14,7 @@ typedef struct
     U64 pieces[2][NPIECES];
     U64 occ[2];
     U64 hash;
+    HalfMove halfmove_clock;
     CastlingRight castling;
     Color side;
     Square enpassant;

@@ -18,7 +18,7 @@
 typedef struct
 {
     U64 hash_stack[MAX_DEPTH];
-    int ply;
+    HalfMove ply;
 } SearchState;
 
 Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *search_state, ThreadContext *thread_ctx, Move *pv_move);
@@ -26,4 +26,4 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
 void *iterative_deepening(void *arg);
 void *main_search(void *arg);
 bool should_stop(ThreadContext *thread_ctx);
-bool is_repetition(SearchState *search_state);
+bool is_repetition(SearchState *search_state, GameHistory *history, HalfMove limit);
