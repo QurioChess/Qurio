@@ -36,6 +36,7 @@ typedef uint8_t CastlingRight;
 typedef uint8_t MoveType;
 typedef int Score;
 typedef int MoveScore;
+typedef uint8_t Depth;
 
 enum ColorConst {
     WHITE = 0,
@@ -93,11 +94,11 @@ enum SquareConst {
 };
 // clang-format on
 enum CastlingRightConst {
-    NO_CASTLING,
-    WCASTLING_KING,
-    WCASTLING_QUEEN,
-    BCASTLING_KING = 4,
-    BCASTLING_QUEEN = 8
+    NO_CASTLING = 0b0000,
+    WCASTLING_KING = 0b0001,
+    WCASTLING_QUEEN = 0b0010,
+    BCASTLING_KING = 0b0100,
+    BCASTLING_QUEEN = 0b1000,
 };
 enum ScoreConst {
     PAT_SCORE = 0,
@@ -151,4 +152,8 @@ static inline int count_bits(U64 bb) {
 
 static inline PieceType get_piece_type(Piece piece) {
     return piece % 6;
+}
+
+static inline Piece get_piece(PieceType piece_type, Color side) {
+    return (Piece)(piece_type + side * NPIECES);
 }

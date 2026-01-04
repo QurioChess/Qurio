@@ -14,6 +14,7 @@
 #include "search_engine.h"
 #include "time_management.h"
 #include "time_util.h"
+#include "transposition_table.h"
 #include "types.h"
 
 void main_loop();
@@ -27,3 +28,4 @@ void command_ucinewgame(EngineState *engine);
 void command_isready();
 
 void command_perft(EngineState *engine, char *perft_options);
+void command_pprint(EngineState *engine);

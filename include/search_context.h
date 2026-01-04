@@ -7,6 +7,7 @@
 #include "board.h"
 #include "move.h"
 #include "time_management.h"
+#include "transposition_table.h"
 #include "types.h"
 
 typedef struct
@@ -19,9 +20,10 @@ typedef struct
 {
     Position pos;
     SearchContext *search_ctx;
-    uint64_t nodes;
+    TT *table;
+    U64 nodes;
     Move best_move;
     Score score;
-    int depth;
-    int completed_depth;
+    Depth depth;
+    Depth completed_depth;
 } ThreadContext;

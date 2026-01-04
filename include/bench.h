@@ -70,6 +70,6 @@ static char *const BENCH_FENS[] = {
     "7k/7P/6K1/8/3B4/8/8/8 b - -",
 };
 static const int NFENS = 48;
-static const int BENCH_DEPTH = 4;
+static const Depth BENCH_DEPTH = 4;
 
 void bench();

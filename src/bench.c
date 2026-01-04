@@ -2,8 +2,9 @@
 
 void bench() {
     EngineState engine = {0};
+    init_tt(&engine.table, 8);
 
-    int depth = BENCH_DEPTH;
+    Depth depth = BENCH_DEPTH;
     bool use_time_control = false;
     uint64_t time = 0;
     uint64_t inc = 0;

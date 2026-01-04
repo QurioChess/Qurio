@@ -21,14 +21,14 @@ void print_bitboard(U64 bb) {
 
 void print_position_bitboard(Position pos) {
     printf("White Piece:\n");
-    for (int p = 0; p < NPIECES; p++) {
-        printf("Piece: %s \n", PIECE_NAMES[p]);
-        print_bitboard(pos.pieces[WHITE][p]);
+    for (PieceType piece_type = 0; piece_type < NPIECES; piece_type++) {
+        printf("Piece: %s \n", PIECE_NAMES[piece_type]);
+        print_bitboard(pos.pieces[WHITE][piece_type]);
     }
     printf("Black Piece:\n");
-    for (int p = 0; p < NPIECES; p++) {
-        printf("Piece: %s \n", PIECE_NAMES[p]);
-        print_bitboard(pos.pieces[BLACK][p]);
+    for (PieceType piece_type = 0; piece_type < NPIECES; piece_type++) {
+        printf("Piece: %s \n", PIECE_NAMES[piece_type]);
+        print_bitboard(pos.pieces[BLACK][piece_type]);
     }
 }
 
@@ -37,10 +37,10 @@ U64 bb_square_value(U64 bb, Square sq) {
 }
 
 Piece get_piece_on(Position pos, Square sq) {
-    for (int color = 0; color < 2; color++) {
-        for (int p = 0; p < NPIECES; p++) {
-            if (bb_square_value(pos.pieces[color][p], sq) != 0) {
-                return (Piece)(p + color * NPIECES);
+    for (Color side = 0; side < 2; side++) {
+        for (PieceType piece_type = 0; piece_type < NPIECES; piece_type++) {
+            if (bb_square_value(pos.pieces[side][piece_type], sq) != 0) {
+                return get_piece(piece_type, side);
             }
         }
     }
@@ -108,6 +108,30 @@ void print_position(Position pos) {
     } else {
         printf("En passant square: NONE\n");
     }
+    printf("Hash: %" PRIu64 "\n", pos.hash);
+}
+
+U64 compute_hash(Position pos) {
+    U64 hash = (pos.side == WHITE) ? 0 : get_side_zkey();
+
+    for (Color side = 0; side < 2; side++) {
+        for (PieceType piece_type = 0; piece_type < NPIECES; piece_type++) {
+            U64 bb = pos.pieces[side][piece_type];
+            while (bb) {
+                Square sq = pop_lsb(&bb);
+                hash ^= get_piece_square_zkey(get_piece(piece_type, side), sq);
+            }
+        }
+    }
+
+    hash ^= get_castling_zkey(pos.castling);
+
+    if (pos.enpassant != NOSQUARE) {
+        int file = pos.enpassant % NFILES;
+        hash ^= get_enpassant_zkey(file);
+    }
+
+    return hash;
 }
 
 void set_start_position(Position *pos) {
@@ -142,6 +166,8 @@ void set_start_position(Position *pos) {
     pos->side = WHITE;
     pos->castling = 0b1111;
     pos->enpassant = NOSQUARE;
+
+    pos->hash = compute_hash(*pos);
 }
 
 void parse_fen(Position *pos, char *fen) {
@@ -291,10 +317,12 @@ void parse_fen(Position *pos, char *fen) {
     }
 
     // Compute occupancies
-    for (int piece = 0; piece < NPIECES; piece++) {
-        pos->occ[WHITE] = pos->occ[WHITE] | pos->pieces[WHITE][piece];
-        pos->occ[BLACK] = pos->occ[BLACK] | pos->pieces[BLACK][piece];
+    for (PieceType piece_type = 0; piece_type < NPIECES; piece_type++) {
+        pos->occ[WHITE] = pos->occ[WHITE] | pos->pieces[WHITE][piece_type];
+        pos->occ[BLACK] = pos->occ[BLACK] | pos->pieces[BLACK][piece_type];
     }
+
+    pos->hash = compute_hash(*pos);
 }
 
 void make_move(Position *pos, Move move) {
@@ -317,10 +345,12 @@ void make_move(Position *pos, Move move) {
     case MOVE_DEFAULT:
         pos->pieces[stm][moving_piece_type] = (pos->pieces[stm][moving_piece_type] ^ (1ULL << from)) | (1ULL << to);
         pos->occ[stm] = (pos->occ[stm] ^ (1ULL << from)) | (1ULL << to);
+        pos->hash ^= get_piece_square_zkey(moving_piece, from) ^ get_piece_square_zkey(moving_piece, to);
 
         if (is_capture) {
             pos->pieces[op][target_piece_type] = (pos->pieces[op][target_piece_type] ^ (1ULL << to));
             pos->occ[op] = (pos->occ[op] ^ (1ULL << to));
+            pos->hash ^= get_piece_square_zkey(target_piece, to);
         }
 
         break;
@@ -328,25 +358,30 @@ void make_move(Position *pos, Move move) {
         pos->pieces[stm][moving_piece_type] = (pos->pieces[stm][moving_piece_type] ^ (1ULL << from));
         pos->pieces[stm][(PieceType)(prom)] = pos->pieces[stm][(PieceType)(prom)] | (1ULL << to);
         pos->occ[stm] = (pos->occ[stm] ^ (1ULL << from)) | (1ULL << to);
+        pos->hash ^= get_piece_square_zkey(moving_piece, from) ^ get_piece_square_zkey(get_piece((PieceType)(prom), stm), to);
 
         if (is_capture) {
             pos->pieces[op][target_piece_type] = (pos->pieces[op][target_piece_type] ^ (1ULL << to));
             pos->occ[op] = (pos->occ[op] ^ (1ULL << to));
+            pos->hash ^= get_piece_square_zkey(target_piece, to);
         }
 
         break;
     case MOVE_ENPASSANT:
         pos->pieces[stm][moving_piece_type] = (pos->pieces[stm][moving_piece_type] ^ (1ULL << from)) | (1ULL << to);
         pos->occ[stm] = (pos->occ[stm] ^ (1ULL << from)) | (1ULL << to);
+        pos->hash ^= get_piece_square_zkey(moving_piece, from) ^ get_piece_square_zkey(moving_piece, to);
 
         Square enpassant_target = (stm == WHITE) ? (to - 8) : (to + 8);
         pos->pieces[op][PAWN] = (pos->pieces[op][PAWN] ^ (1ULL << enpassant_target));
         pos->occ[op] = (pos->occ[op] ^ (1ULL << enpassant_target));
+        pos->hash ^= get_piece_square_zkey(get_piece(PAWN, op), enpassant_target);
 
         break;
     case MOVE_CASTLING:
         pos->pieces[stm][KING] = (pos->pieces[stm][KING] ^ (1ULL << from)) | (1ULL << to);
         pos->occ[stm] = (pos->occ[stm] ^ (1ULL << from)) | (1ULL << to);
+        pos->hash ^= get_piece_square_zkey(get_piece(KING, stm), from) ^ get_piece_square_zkey(get_piece(KING, stm), to);
 
         Square starting_rook;
         Square ending_rook;
@@ -366,6 +401,7 @@ void make_move(Position *pos, Move move) {
 
         pos->pieces[stm][ROOK] = (pos->pieces[stm][ROOK] ^ (1ULL << starting_rook)) | (1ULL << ending_rook);
         pos->occ[stm] = (pos->occ[stm] ^ (1ULL << starting_rook)) | (1ULL << ending_rook);
+        pos->hash ^= get_piece_square_zkey(get_piece(ROOK, stm), starting_rook) ^ get_piece_square_zkey(get_piece(ROOK, stm), ending_rook);
 
         break;
 
@@ -375,6 +411,7 @@ void make_move(Position *pos, Move move) {
 
     if (pos->castling) {
         Square king_square = (stm == WHITE) ? E1 : E8;
+        pos->hash ^= get_castling_zkey(pos->castling);
 
         if (from == king_square) {
             CastlingRight mask = (stm == WHITE) ? (WCASTLING_KING | WCASTLING_QUEEN) : (BCASTLING_KING | BCASTLING_QUEEN);
@@ -400,15 +437,21 @@ void make_move(Position *pos, Move move) {
             CastlingRight mask = BCASTLING_KING;
             pos->castling = pos->castling & ~(mask);
         }
+        pos->hash ^= get_castling_zkey(pos->castling);
+    }
+
+    if (pos->enpassant != NOSQUARE) {
+        pos->hash ^= get_enpassant_zkey(pos->enpassant % NFILES);
     }
 
     int distance = (stm == WHITE) ? (to - from) : (from - to);
     if ((moving_piece_type == PAWN) && (distance == 16)) {
-        Square enpassant = (stm == WHITE) ? (from + 8) : (from - 8);
-        pos->enpassant = enpassant;
+        pos->enpassant = (stm == WHITE) ? (from + 8) : (from - 8);
+        pos->hash ^= get_enpassant_zkey(pos->enpassant % NFILES);
     } else {
         pos->enpassant = NOSQUARE;
     }
 
     pos->side = op;
+    pos->hash ^= get_side_zkey();
 }

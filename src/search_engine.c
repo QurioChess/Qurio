@@ -1,6 +1,6 @@
 #include "search_engine.h"
 
-void start_search(EngineState *engine, int depth) {
+void start_search(EngineState *engine, Depth depth) {
     atomic_store_explicit(&engine->search_ctx.stop, false, memory_order_relaxed);
 
     if (engine->search_running) {
@@ -11,6 +11,7 @@ void start_search(EngineState *engine, int depth) {
     ThreadContext *thread_ctx = &engine->thread_ctxs[0];
     thread_ctx->pos = engine->pos;
     thread_ctx->search_ctx = &engine->search_ctx;
+    thread_ctx->table = &engine->table;
     thread_ctx->nodes = 0ULL;
     thread_ctx->best_move = INVALID_MOVE;
     thread_ctx->score = INVALID_SCORE;

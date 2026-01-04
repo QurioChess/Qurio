@@ -68,7 +68,7 @@ Move parse_move(Position pos, char *move_token) {
 void command_go(EngineState *engine, char *go_options) {
     uint64_t start_time = get_time_ms();
 
-    int depth = MAX_DEPTH;
+    Depth depth = MAX_DEPTH;
 
     bool use_time_control = false;
     uint64_t time = 0;
@@ -82,7 +82,7 @@ void command_go(EngineState *engine, char *go_options) {
         if (strcmp(token, "depth") == 0) {
             token = strtok(NULL, " ");
             if (token != NULL) {
-                depth = atoi(token);
+                depth = (Depth)atoi(token);
             }
         } else if (strcmp(token, "wtime") == 0) {
             token = strtok(NULL, " ");
@@ -117,7 +117,7 @@ void command_go(EngineState *engine, char *go_options) {
         token = strtok(NULL, " ");
     }
 
-    printf(">>> Found limits: depth(%i) time(%" PRIu64 ") inc(%" PRIu64 ") movestogo(%i)\n", depth, time, inc, movestogo);
+    printf(">>> Found limits: depth(%" PRIu8 ") time(%" PRIu64 ") inc(%" PRIu64 ") movestogo(%i)\n", depth, time, inc, movestogo);
     compute_time_to_search(&engine->search_ctx.tm, start_time, time, inc, movestogo, use_time_control);
     start_search(engine, depth);
 }
@@ -153,11 +153,16 @@ void command_perft(EngineState *engine, char *perft_options) {
     divide_perft(engine->pos, depth);
 }
 
+void command_pprint(EngineState *engine) {
+    print_position(engine->pos);
+}
+
 void main_loop() {
     char line[2048];
 
     EngineState engine = {0};
     set_start_position(&engine.pos);
+    init_tt(&engine.table, 8);
 
     while (fgets(line, sizeof(line), stdin) != NULL) {
         line[strcspn(line, "\r\n")] = '\0';
@@ -202,6 +207,11 @@ void main_loop() {
 
         if (strncmp(line, "bench", 5) == 0) {
             bench();
+            continue;
+        }
+
+        if (strncmp(line, "pprint", 6) == 0) {
+            command_pprint(&engine);
             continue;
         }
     }

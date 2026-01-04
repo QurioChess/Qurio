@@ -8,6 +8,7 @@
 
 static const MoveScore PROMOTION_SCORE = 100;
 static const MoveScore VICTIM_SCALING = 6;
+static const MoveScore TT_MOVE = 10000;
 
-void score_moves(Position pos, MoveList *move_list);
+void score_moves(Position pos, MoveList *move_list, Move tt_move);
 Move get_next_move(MoveList *move_list, int index);

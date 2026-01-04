@@ -1,8 +1,14 @@
 #include "move_ordering.h"
 
-void score_moves(Position pos, MoveList *move_list) {
+void score_moves(Position pos, MoveList *move_list, Move tt_move) {
     for (int i = 0; i < move_list->count; i++) {
         Move move = move_list->moves[i];
+
+        if (move == tt_move) {
+            move_list->scores[i] = TT_MOVE;
+            continue;
+        }
+
         Square from = decode_move_from(move);
         Square to = decode_move_to(move);
         PromotionType prom = decode_move_promotion(move);

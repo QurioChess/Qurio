@@ -18,7 +18,7 @@ CFLAGS_COMMON := $(CSTD) -I$(INC_DIR) -Wall -Wextra -Wshadow -Wconversion
 CFLAGS_RELEASE := -O3 -march=native -flto -DNDEBUG
 
 # ===== Debug flags =====
-CFLAGS_DEBUG := -O0 -g
+CFLAGS_DEBUG := -O0 -g -DDEBUG
 
 # ===== Link flags =====
 LDFLAGS := -flto -fuse-ld=lld
