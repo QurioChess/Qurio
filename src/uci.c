@@ -142,6 +142,7 @@ void command_isready() {
 
 void command_ucinewgame(EngineState *engine) {
     set_start_position(&engine->pos);
+    clear_tt(&engine->table);
 }
 
 void command_stop(EngineState *engine) {
@@ -164,7 +165,7 @@ void command_pprint(EngineState *engine) {
 }
 
 void main_loop() {
-    char line[2048];
+    char line[8192];
 
     EngineState engine = {0};
     set_start_position(&engine.pos);
