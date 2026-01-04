@@ -16,11 +16,9 @@ bool is_repetition(SearchState *search_state) {
         return false;
 
     U64 current_hash = search_state->hash_stack[current_ply];
-    int target_ply = current_ply - 1;
-    while (target_ply >= 0) {
-        if (search_state->hash_stack[target_ply] == current_hash)
+    for (int i = current_ply - 2; i >= 0; i -= 2) {
+        if (search_state->hash_stack[i] == current_hash)
             return true;
-        target_ply--;
     }
     return false;
 }
