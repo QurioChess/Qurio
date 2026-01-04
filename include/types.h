@@ -157,3 +157,7 @@ static inline PieceType get_piece_type(Piece piece) {
 static inline Piece get_piece(PieceType piece_type, Color side) {
     return (Piece)(piece_type + side * NPIECES);
 }
+
+static inline Square flip_square(Square sq) {
+    return sq ^ 56;
+}
