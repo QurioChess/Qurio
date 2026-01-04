@@ -122,32 +122,17 @@ static const char *const SQUARE_NAMES[] = {
 // clang-format on
 
 static inline Square lsb_index(U64 bb) {
-    Square idx = 0;
-    while (!(bb & 1)) {
-        bb >>= 1;
-        idx++;
-    }
-    return idx;
+    return (Square)__builtin_ctzll(bb);
 }
 
 static inline Square pop_lsb(U64 *bb) {
-    Square idx = 0;
-    U64 b = *bb;
-    while (!(b & 1)) {
-        b >>= 1;
-        idx++;
-    }
-    *bb = *bb & (*bb - 1);
+    Square idx = lsb_index(*bb);
+    *bb &= (*bb - 1);
     return idx;
 }
 
 static inline int count_bits(U64 bb) {
-    int count = 0;
-    while (bb) {
-        bb &= bb - 1;
-        count++;
-    }
-    return count;
+    return __builtin_popcountll(bb);
 }
 
 static inline PieceType get_piece_type(Piece piece) {
