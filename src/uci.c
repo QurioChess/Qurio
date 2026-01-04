@@ -164,7 +164,7 @@ void command_pprint(EngineState *engine) {
 }
 
 void main_loop() {
-    char line[2048];
+    char line[8192];
 
     EngineState engine = {0};
     set_start_position(&engine.pos);
