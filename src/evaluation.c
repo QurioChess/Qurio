@@ -1,20 +1,32 @@
 #include "evaluation.h"
 
 Score evaluate(Position pos) {
-    int wpawn_count = count_bits(pos.pieces[WHITE][PAWN]);
-    int wknight_count = count_bits(pos.pieces[WHITE][KNIGHT]);
-    int wbishop_count = count_bits(pos.pieces[WHITE][BISHOP]);
-    int wrook_count = count_bits(pos.pieces[WHITE][ROOK]);
-    int wqueen_count = count_bits(pos.pieces[WHITE][QUEEN]);
+    Score midgame_score = 0;
+    Score endgame_score = 0;
+    int game_phase = 0;
 
-    int bpawn_count = count_bits(pos.pieces[BLACK][PAWN]);
-    int bknight_count = count_bits(pos.pieces[BLACK][KNIGHT]);
-    int bbishop_count = count_bits(pos.pieces[BLACK][BISHOP]);
-    int brook_count = count_bits(pos.pieces[BLACK][ROOK]);
-    int bqueen_count = count_bits(pos.pieces[BLACK][QUEEN]);
+    for (PieceType piece_type = 0; piece_type < NPIECES; piece_type++) {
+        U64 white_bb = pos.pieces[WHITE][piece_type];
+        while (white_bb) {
+            Square sq = pop_lsb(&white_bb);
 
-    int wvalue = PAWN_VALUE * wpawn_count + KNIGHT_VALUE * wknight_count + BISHOP_VALUE * wbishop_count + ROOK_VALUE * wrook_count + QUEEN_VALUE * wqueen_count;
-    int bvalue = PAWN_VALUE * bpawn_count + KNIGHT_VALUE * bknight_count + BISHOP_VALUE * bbishop_count + ROOK_VALUE * brook_count + QUEEN_VALUE * bqueen_count;
+            midgame_score += MID_GAME_TABLES[piece_type][sq];
+            endgame_score += END_GAME_TABLES[piece_type][sq];
+            game_phase += PHASE_WEIGHTS[piece_type];
+        }
 
-    return (pos.side == WHITE) ? (wvalue - bvalue) : (bvalue - wvalue);
+        U64 black_bb = pos.pieces[BLACK][piece_type];
+        while (black_bb) {
+            Square sq = flip_square(pop_lsb(&black_bb));
+
+            midgame_score -= MID_GAME_TABLES[piece_type][sq];
+            endgame_score -= END_GAME_TABLES[piece_type][sq];
+            game_phase += PHASE_WEIGHTS[piece_type];
+        }
+    }
+
+    game_phase = (game_phase > 24) ? 24 : game_phase;
+    Score weighted_score = (midgame_score * game_phase + endgame_score * (24 - game_phase)) / 24;
+
+    return (pos.side == WHITE) ? weighted_score : -weighted_score;
 }
