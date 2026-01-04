@@ -142,6 +142,7 @@ void command_isready() {
 
 void command_ucinewgame(EngineState *engine) {
     set_start_position(&engine->pos);
+    clear_tt(&engine->table);
 }
 
 void command_stop(EngineState *engine) {
