@@ -48,12 +48,13 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     Move tt_move = INVALID_MOVE;
     if (entry != NULL) {
         if ((search_state->ply != 0) && (entry->depth >= depth)) {
+            Score tt_score = score_from_tt(entry->score, search_state->ply);
             if (entry->type == EXACT)
-                return entry->score;
-            if ((entry->type == LOWER_BOUND) && (entry->score >= beta))
-                return entry->score;
-            if ((entry->type == UPPER_BOUND) && (entry->score <= alpha))
-                return entry->score;
+                return tt_score;
+            if ((entry->type == LOWER_BOUND) && (tt_score >= beta))
+                return tt_score;
+            if ((entry->type == UPPER_BOUND) && (tt_score <= alpha))
+                return tt_score;
         }
         tt_move = entry->best_move;
     }
@@ -83,7 +84,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         search_state->ply--;
 
         if (value > best_value) {
-            best_value = (value > MATE_SCORE) ? MATE_SCORE : value;
+            best_value = value;
             best_move = move;
             if (pv_move != NULL) {
                 *pv_move = move;
@@ -100,7 +101,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
 
     if (legal_moves_count == 0) {
         if (is_in_check(pos, pos.side)) {
-            return -MATE_SCORE;
+            return -(MATE_SCORE - search_state->ply);
         } else {
             return DRAW_SCORE;
         }
@@ -109,7 +110,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     if (!should_stop(thread_ctx)) {
         EntryType type = (best_value >= beta) ? UPPER_BOUND : (best_value > initial_alpha) ? EXACT
                                                                                            : LOWER_BOUND;
-        store_tt(thread_ctx->table, pos.hash, depth, best_move, best_value, type);
+        store_tt(thread_ctx->table, pos.hash, depth, best_move, score_to_tt(best_value, search_state->ply), type);
     }
 
     return best_value;
@@ -123,12 +124,13 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
     TTEntry *entry = probe_tt(thread_ctx->table, pos.hash);
     Move tt_move = INVALID_MOVE;
     if (entry != NULL) {
+        Score tt_score = score_from_tt(entry->score, search_state->ply);
         if (entry->type == EXACT)
-            return entry->score;
-        if ((entry->type == LOWER_BOUND) && (entry->score >= beta))
-            return entry->score;
-        if ((entry->type == UPPER_BOUND) && (entry->score <= alpha))
-            return entry->score;
+            return tt_score;
+        if ((entry->type == LOWER_BOUND) && (tt_score >= beta))
+            return tt_score;
+        if ((entry->type == UPPER_BOUND) && (tt_score <= alpha))
+            return tt_score;
         tt_move = entry->best_move;
     }
 
@@ -160,7 +162,7 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
         search_state->ply--;
 
         if (value > best_value) {
-            best_value = (value > MATE_SCORE) ? MATE_SCORE : value;
+            best_value = value;
         }
 
         if (value > alpha) {
@@ -183,9 +185,6 @@ void *iterative_deepening(void *arg) {
         search_state.hash_stack[0] = thread_ctx->pos.hash;
 
         Score current_score = negamax(thread_ctx->pos, -MATE_SCORE, +MATE_SCORE, d, &search_state, thread_ctx, &current_best);
-        printf("Search at (depth: %" PRIu8 ") (nodes: %" PRIu64 ") (value: %i): ", d, thread_ctx->nodes, current_score);
-        print_move(current_best);
-        printf("\n");
 
         if ((current_score == INVALID_SCORE) || (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed)))
             break;
@@ -193,6 +192,19 @@ void *iterative_deepening(void *arg) {
         thread_ctx->best_move = current_best;
         thread_ctx->score = current_score;
         thread_ctx->completed_depth = d;
+
+        printf("info depth %d nodes %" PRIu64 " ", d, thread_ctx->nodes);
+        if (current_score > MATE_SCORE_BOUNDARY) {
+            printf("score mate %d ", MATE_SCORE - current_score);
+        } else if (current_score < -MATE_SCORE_BOUNDARY) {
+            printf("score mate %d ", -(MATE_SCORE + current_score));
+        } else {
+            printf("score cp %d ", current_score);
+        }
+
+        printf("pv ");
+        print_move(current_best);
+        printf("\n");
 
         if (d == thread_ctx->depth)
             break;
@@ -205,8 +217,6 @@ void *main_search(void *arg) {
 
     ThreadContext *thread_ctx = (ThreadContext *)arg;
     if (thread_ctx->score != INVALID_SCORE) {
-        printf("info: nodes: %" PRIu64 "\n", thread_ctx->nodes);
-        printf("info: completed_depth: %i\n", thread_ctx->completed_depth);
         printf("bestmove ");
         print_move(thread_ctx->best_move);
         printf("\n");

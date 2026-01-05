@@ -19,6 +19,24 @@ void store_tt(TT *table, U64 hash, Depth depth, Move best_move, Score score, Ent
     table->underlying[index].type = type;
 }
 
+Score score_from_tt(Score tt_score, HalfMove ply) {
+    if (tt_score > MATE_SCORE_BOUNDARY)
+        return tt_score - ply;
+    else if (tt_score < -MATE_SCORE_BOUNDARY)
+        return tt_score + ply;
+    else
+        return tt_score;
+}
+
+Score score_to_tt(Score score, HalfMove ply) {
+    if (score > MATE_SCORE_BOUNDARY)
+        return score + ply;
+    else if (score < -MATE_SCORE_BOUNDARY)
+        return score - ply;
+    else
+        return score;
+}
+
 void init_tt(TT *table, size_t megabytes) {
     size_t bytes = megabytes * 1024 * 1024;
     size_t size = bytes / sizeof(TTEntry);

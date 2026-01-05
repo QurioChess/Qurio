@@ -104,7 +104,8 @@ enum CastlingRightConst {
 };
 enum ScoreConst {
     DRAW_SCORE = 0,
-    MATE_SCORE = INT_MAX - 1024,
+    MATE_SCORE = INT_MAX - 32768,
+    MATE_SCORE_BOUNDARY = INT_MAX - 32768 - MAX_DEPTH,
     INVALID_SCORE = INT_MIN
 };
 
