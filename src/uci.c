@@ -119,6 +119,12 @@ void command_go(EngineState *engine, char *go_options) {
             if ((token != NULL)) {
                 movestogo = atoi(token);
             }
+        } else if (strcmp(token, "movetime") == 0) {
+            token = strtok(NULL, " ");
+            if (token != NULL) {
+                time = (uint64_t)atoi(token);
+                use_time_control = true;
+            }
         }
         token = strtok(NULL, " ");
     }
