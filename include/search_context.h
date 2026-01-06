@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "board.h"
+// #include "history.h"
 #include "move.h"
 #include "time_management.h"
 #include "transposition_table.h"
@@ -22,12 +23,22 @@ typedef struct
     TimeManagement tm;
 } SearchContext;
 
+// typedef struct {
+//     ButterflyHistory quiet_history;
+// } PersistentState;
+
 typedef struct
 {
-    Position pos;
+    // Pointer to global ressources
     SearchContext *search_ctx;
     GameHistory *history;
     TT *table;
+
+    // // Persistent data (reset on ucinewgame)
+    // PersistentState persistent;
+
+    // Search-Local data
+    Position pos;
     U64 nodes;
     Move best_move;
     Score score;

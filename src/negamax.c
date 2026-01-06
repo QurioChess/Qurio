@@ -35,6 +35,23 @@ bool is_repetition(SearchState *search_state, GameHistory *history, HalfMove lim
     return false;
 }
 
+// void update_quiet_history(Position pos, Move move, Depth depth, ThreadContext *thread_ctx) {
+//     Square from = decode_move_from(move);
+//     Square to = decode_move_to(move);
+//     PromotionType prom = decode_move_promotion(move);
+//     MoveType type = decode_move_type(move);
+
+//     Color stm = pos.side;
+//     Color op = stm ^ 1;
+
+//     bool is_capture = (pos.occ[op] & (1ULL << to));
+
+//     if (is_capture || type == MOVE_ENPASSANT)
+//     {
+//         thread_ctx->persistent.quiet_history[stm][from][to] += depth * depth;
+//     }
+// }
+
 Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *search_state, ThreadContext *thread_ctx, Move *pv_move) {
     if (should_stop(thread_ctx))
         return INVALID_SCORE;
@@ -94,8 +111,10 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         if (value > alpha) {
             alpha = value;
 
-            if (alpha >= beta)
+            if (alpha >= beta) {
+                // update_quiet_history(pos, move, thread_ctx);                
                 break;
+            }
         }
     }
 
@@ -111,7 +130,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         EntryType type = (best_value >= beta) ? UPPER_BOUND : (best_value > initial_alpha) ? EXACT
                                                                                            : LOWER_BOUND;
         store_tt(thread_ctx->table, pos.hash, depth, best_move, score_to_tt(best_value, search_state->ply), type);
-    }
+    }    
 
     return best_value;
 }

@@ -1,5 +1,16 @@
 #include "search_engine.h"
 
+void clear_engine(EngineState *engine) {
+    set_start_position(&engine->pos);
+    clear_tt(&engine->table);
+    reset_history(&engine->history);
+
+    // for (int i = 0; i < MAX_THREADS; i++)
+    // {
+    //     memset(&engine->thread_ctxs[i].persistent, 0, sizeof(PersistentState));
+    // }
+}
+
 void start_search(EngineState *engine, Depth depth) {
     atomic_store_explicit(&engine->search_ctx.stop, false, memory_order_relaxed);
 

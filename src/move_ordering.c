@@ -1,5 +1,9 @@
 #include "move_ordering.h"
 
+MoveScore mvv_lva(PieceType victim, PieceType attacker) {
+    return VICTIM_SCALING * (MoveScore)victim - (MoveScore)attacker;
+}
+
 void score_moves(Position pos, MoveList *move_list, Move tt_move) {
     for (int i = 0; i < move_list->count; i++) {
         Move move = move_list->moves[i];
@@ -12,34 +16,28 @@ void score_moves(Position pos, MoveList *move_list, Move tt_move) {
         Square from = decode_move_from(move);
         Square to = decode_move_to(move);
         PromotionType prom = decode_move_promotion(move);
-        MoveType type = decode_move_type(move);
+        MoveFlags flags = classify_move(pos, move);
 
-        Color stm = pos.side;
-        Color op = stm ^ 1;
+        move_list->scores[i] = 0;
+        if ((flags & FLAG_PROMOTION)) {
+            move_list->scores[i] += PROMOTION_SCORE + (MoveScore)prom;
+        }
 
-        bool is_capture = (pos.occ[op] & (1ULL << to));
+        if ((flags & FLAG_CAPTURE)) {
+            PieceType attacker = get_piece_type(get_piece_on(pos, from));
+            PieceType victim = get_piece_type(get_piece_on(pos, to));
+            move_list->scores[i] += CAPTURE_SCORE + mvv_lva(victim, attacker);
+        }
 
-        switch (type) {
-        case MOVE_DEFAULT:
-            if (is_capture) {
-                PieceType attacker = get_piece_type(get_piece_on(pos, from));
-                PieceType victim = get_piece_type(get_piece_on(pos, to));
-                move_list->scores[i] = VICTIM_SCALING * (MoveScore)victim - (MoveScore)attacker;
-            }
-            break;
-        case MOVE_PROM:
-            move_list->scores[i] = PROMOTION_SCORE + (MoveScore)prom;
-            if (is_capture) {
-                PieceType victim = get_piece_type(get_piece_on(pos, to));
-                move_list->scores[i] += VICTIM_SCALING * (MoveScore)victim;
-            }
-            break;
-        case MOVE_ENPASSANT:
-            move_list->scores[i] = 0;
-            break;
+        if ((flags & FLAG_ENPASSANT)) {
+            move_list->scores[i] += CAPTURE_SCORE;
+        }
 
-        default:
-            break;
+        if ((flags & FLAG_CASTLING)) {
+        }
+
+        if ((flags & FLAGS_QUIET)) {
+
         }
     }
 }

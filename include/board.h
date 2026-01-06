@@ -33,3 +33,4 @@ void set_start_position(Position *pos);
 void parse_fen(Position *pos, char *fen);
 
 void make_move(Position *pos, Move move);
+MoveFlags classify_move(Position pos, Move move);
