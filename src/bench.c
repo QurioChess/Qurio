@@ -14,7 +14,7 @@ void bench() {
     uint64_t start = get_time_ms();
     U64 nodes = 0ULL;
     for (int i = 0; i < NFENS; i++) {
-        reset_history(&engine.history);
+        clear_engine(&engine);
         parse_fen(&engine.pos, BENCH_FENS[i]);
         push_hash(&engine.history, engine.pos.hash);
 
