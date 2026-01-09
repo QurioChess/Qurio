@@ -35,6 +35,20 @@ bool is_repetition(SearchState *search_state, GameHistory *history, HalfMove lim
     return false;
 }
 
+void update_quiet_history(Position pos, Move move, Depth depth, ThreadContext *thread_ctx) {
+    MoveFlags flags = classify_move(pos, move);
+    if (!(flags & (FLAG_CAPTURE | FLAG_ENPASSANT | FLAG_PROMOTION))) {
+        Color stm = pos.side;
+        Square from = decode_move_from(move);
+        Square to = decode_move_to(move);
+        thread_ctx->persistent.quiet_history[stm][from][to] += (MoveScore)depth * (MoveScore)depth;
+
+        if (thread_ctx->persistent.quiet_history[stm][from][to] > MAX_QUIET_HISTORY) {
+            thread_ctx->persistent.quiet_history[stm][from][to] = MAX_QUIET_HISTORY;
+        }
+    }
+}
+
 Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *search_state, ThreadContext *thread_ctx, Move *pv_move) {
     if (should_stop(thread_ctx))
         return INVALID_SCORE;
@@ -65,7 +79,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     int legal_moves_count = 0;
     MoveList move_list = {.count = 0};
     generate_pseudo_legals(pos, &move_list, false);
-    score_moves(pos, &move_list, tt_move);
+    score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history);
 
     Score best_value = -MATE_SCORE;
     Score initial_alpha = alpha;
@@ -94,8 +108,10 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         if (value > alpha) {
             alpha = value;
 
-            if (alpha >= beta)
+            if (alpha >= beta) {
+                update_quiet_history(pos, move, depth, thread_ctx);
                 break;
+            }
         }
     }
 
@@ -146,7 +162,7 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
 
     MoveList move_list = {.count = 0};
     generate_pseudo_legals(pos, &move_list, true);
-    score_moves(pos, &move_list, tt_move);
+    score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history);
 
     Score best_value = static_eval;
     for (int i = 0; i < move_list.count; i++) {
@@ -209,6 +225,7 @@ void *iterative_deepening(void *arg) {
         if (d == thread_ctx->depth)
             break;
     }
+
     return NULL;
 }
 

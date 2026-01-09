@@ -467,3 +467,27 @@ void make_move(Position *pos, Move move) {
     pos->side = op;
     pos->hash ^= get_side_zkey();
 }
+
+MoveFlags classify_move(Position pos, Move move) {
+    MoveType type = decode_move_type(move);
+    if (type == MOVE_CASTLING)
+        return FLAG_CASTLING | FLAGS_QUIET;
+
+    if (type == MOVE_ENPASSANT)
+        return FLAG_ENPASSANT;
+
+    MoveFlags flags = FLAGS_QUIET;
+    if (type == MOVE_PROM) {
+        flags |= FLAG_PROMOTION;
+    }
+    Square to = decode_move_to(move);
+    Color stm = pos.side;
+    Color op = stm ^ 1;
+    bool is_capture = (pos.occ[op] & (1ULL << to));
+
+    if (is_capture) {
+        flags |= FLAG_CAPTURE;
+    }
+
+    return flags;
+}

@@ -22,6 +22,8 @@ typedef struct
     GameHistory history;
 } EngineState;
 
+void clear_engine(EngineState *engine);
+
 void start_search(EngineState *engine, Depth depth);
 void stop_search(EngineState *engine);
 void wait_search(EngineState *engine);

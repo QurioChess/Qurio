@@ -35,6 +35,7 @@ typedef uint8_t Piece;
 typedef uint8_t PromotionType;
 typedef uint8_t CastlingRight;
 typedef uint8_t MoveType;
+typedef uint8_t MoveFlags;
 typedef int Score;
 typedef int MoveScore;
 typedef uint8_t Depth;
@@ -80,6 +81,13 @@ enum MoveTypeConst {
     MOVE_PROM,
     MOVE_ENPASSANT,
     MOVE_CASTLING
+};
+enum MoveFlagsConst {
+    FLAGS_QUIET = 0b0000,
+    FLAG_CAPTURE = 0b0001,
+    FLAG_PROMOTION = 0b0010,
+    FLAG_ENPASSANT = 0b0100,
+    FLAG_CASTLING = 0b1000,
 };
 // clang-format off
 enum SquareConst {

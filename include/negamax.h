@@ -27,3 +27,5 @@ void *iterative_deepening(void *arg);
 void *main_search(void *arg);
 bool should_stop(ThreadContext *thread_ctx);
 bool is_repetition(SearchState *search_state, GameHistory *history, HalfMove limit);
+
+void update_quiet_history(Position pos, Move move, Depth depth, ThreadContext *thread_ctx);
