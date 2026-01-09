@@ -35,22 +35,19 @@ bool is_repetition(SearchState *search_state, GameHistory *history, HalfMove lim
     return false;
 }
 
-// void update_quiet_history(Position pos, Move move, Depth depth, ThreadContext *thread_ctx) {
-//     Square from = decode_move_from(move);
-//     Square to = decode_move_to(move);
-//     PromotionType prom = decode_move_promotion(move);
-//     MoveType type = decode_move_type(move);
+void update_quiet_history(Position pos, Move move, Depth depth, ThreadContext *thread_ctx) {
+    MoveFlags flags = classify_move(pos, move);
+    if (!(flags & (FLAG_CAPTURE | FLAG_ENPASSANT | FLAG_PROMOTION))) {
+        Color stm = pos.side;
+        Square from = decode_move_from(move);
+        Square to = decode_move_to(move);
+        thread_ctx->persistent.quiet_history[stm][from][to] += (MoveScore)depth * (MoveScore)depth;
 
-//     Color stm = pos.side;
-//     Color op = stm ^ 1;
-
-//     bool is_capture = (pos.occ[op] & (1ULL << to));
-
-//     if (is_capture || type == MOVE_ENPASSANT)
-//     {
-//         thread_ctx->persistent.quiet_history[stm][from][to] += depth * depth;
-//     }
-// }
+        if (thread_ctx->persistent.quiet_history[stm][from][to] > MAX_QUIET_HISTORY) {
+            thread_ctx->persistent.quiet_history[stm][from][to] = MAX_QUIET_HISTORY;
+        }
+    }
+}
 
 Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *search_state, ThreadContext *thread_ctx, Move *pv_move) {
     if (should_stop(thread_ctx))
@@ -82,7 +79,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     int legal_moves_count = 0;
     MoveList move_list = {.count = 0};
     generate_pseudo_legals(pos, &move_list, false);
-    score_moves(pos, &move_list, tt_move);
+    score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history);
 
     Score best_value = -MATE_SCORE;
     Score initial_alpha = alpha;
@@ -112,7 +109,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
             alpha = value;
 
             if (alpha >= beta) {
-                // update_quiet_history(pos, move, thread_ctx);                
+                update_quiet_history(pos, move, depth, thread_ctx);
                 break;
             }
         }
@@ -130,7 +127,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         EntryType type = (best_value >= beta) ? UPPER_BOUND : (best_value > initial_alpha) ? EXACT
                                                                                            : LOWER_BOUND;
         store_tt(thread_ctx->table, pos.hash, depth, best_move, score_to_tt(best_value, search_state->ply), type);
-    }    
+    }
 
     return best_value;
 }
@@ -165,7 +162,7 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
 
     MoveList move_list = {.count = 0};
     generate_pseudo_legals(pos, &move_list, true);
-    score_moves(pos, &move_list, tt_move);
+    score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history);
 
     Score best_value = static_eval;
     for (int i = 0; i < move_list.count; i++) {
@@ -228,6 +225,7 @@ void *iterative_deepening(void *arg) {
         if (d == thread_ctx->depth)
             break;
     }
+
     return NULL;
 }
 

@@ -6,14 +6,16 @@
 #include "move.h"
 #include "movegen.h"
 
+typedef MoveScore ButterflyHistory[2][NSQUARES][NSQUARES];
 
 static const MoveScore TT_MOVE = 300000;
 static const MoveScore PROMOTION_SCORE = 200000;
 static const MoveScore CAPTURE_SCORE = 100000;
+static const MoveScore MAX_QUIET_HISTORY = CAPTURE_SCORE - 5000;
 
 static const MoveScore VICTIM_SCALING = 6;
 
 MoveScore mvv_lva(PieceType victim, PieceType attacker);
 
-void score_moves(Position pos, MoveList *move_list, Move tt_move);
+void score_moves(Position pos, MoveList *move_list, Move tt_move, ButterflyHistory *quiet_history);
 Move get_next_move(MoveList *move_list, int index);

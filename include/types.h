@@ -88,7 +88,6 @@ enum MoveFlagsConst {
     FLAG_PROMOTION = 0b0010,
     FLAG_ENPASSANT = 0b0100,
     FLAG_CASTLING = 0b1000,
-
 };
 // clang-format off
 enum SquareConst {

@@ -1,8 +1,9 @@
 #include "bench.h"
 
 void bench() {
-    EngineState engine = {0};
+    EngineState engine;
     init_tt(&engine.table, 8);
+    clear_engine(&engine);
 
     Depth depth = BENCH_DEPTH;
     bool use_time_control = false;

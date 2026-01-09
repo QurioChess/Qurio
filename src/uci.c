@@ -173,9 +173,9 @@ void command_pprint(EngineState *engine) {
 void main_loop() {
     char line[8192];
 
-    EngineState engine = {0};
-    set_start_position(&engine.pos);
+    EngineState engine;
     init_tt(&engine.table, 8);
+    clear_engine(&engine);
 
     while (fgets(line, sizeof(line), stdin) != NULL) {
         line[strcspn(line, "\r\n")] = '\0';

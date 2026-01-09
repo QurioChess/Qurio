@@ -4,7 +4,7 @@ MoveScore mvv_lva(PieceType victim, PieceType attacker) {
     return VICTIM_SCALING * (MoveScore)victim - (MoveScore)attacker;
 }
 
-void score_moves(Position pos, MoveList *move_list, Move tt_move) {
+void score_moves(Position pos, MoveList *move_list, Move tt_move, ButterflyHistory *quiet_history) {
     for (int i = 0; i < move_list->count; i++) {
         Move move = move_list->moves[i];
 
@@ -15,11 +15,11 @@ void score_moves(Position pos, MoveList *move_list, Move tt_move) {
 
         Square from = decode_move_from(move);
         Square to = decode_move_to(move);
-        PromotionType prom = decode_move_promotion(move);
         MoveFlags flags = classify_move(pos, move);
 
         move_list->scores[i] = 0;
         if ((flags & FLAG_PROMOTION)) {
+            PromotionType prom = decode_move_promotion(move);
             move_list->scores[i] += PROMOTION_SCORE + (MoveScore)prom;
         }
 
@@ -36,8 +36,9 @@ void score_moves(Position pos, MoveList *move_list, Move tt_move) {
         if ((flags & FLAG_CASTLING)) {
         }
 
-        if ((flags & FLAGS_QUIET)) {
-
+        if ((!(flags & (FLAG_CAPTURE | FLAG_ENPASSANT | FLAG_PROMOTION)))) {
+            Color stm = pos.side;
+            move_list->scores[i] += (*quiet_history)[stm][from][to];
         }
     }
 }
