@@ -92,9 +92,21 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         if (is_in_check(next_pos, next_pos.side ^ 1))
             continue;
         legal_moves_count++;
-
         search_state->hash_stack[++search_state->ply] = next_pos.hash;
-        int value = -negamax(next_pos, -beta, -alpha, depth - 1, search_state, thread_ctx, NULL);
+
+        int value = INVALID_SCORE;
+        // First move: full search
+        if (legal_moves_count == 1) {
+            value = -negamax(next_pos, -beta, -alpha, depth - 1, search_state, thread_ctx, NULL);
+        } else {
+            // zw search
+            value = -negamax(next_pos, -alpha - 1, -alpha, depth - 1, search_state, thread_ctx, NULL);
+
+            if (value > alpha && value < beta) {
+                // research full window
+                value = -negamax(next_pos, -beta, -alpha, depth - 1, search_state, thread_ctx, NULL);
+            }
+        }
         search_state->ply--;
 
         if (value > best_value) {
