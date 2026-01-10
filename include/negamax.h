@@ -15,6 +15,10 @@
 #include "transposition_table.h"
 #include "types.h"
 
+
+static const Depth ASPIRATION_WINDOW_DEPTH = 3;
+static const Score ASPIRATION_WINDOW_WIDE = 100;
+
 typedef struct
 {
     U64 hash_stack[MAX_DEPTH];
@@ -23,6 +27,7 @@ typedef struct
 
 Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *search_state, ThreadContext *thread_ctx, Move *pv_move);
 Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_state, ThreadContext *thread_ctx);
+Score aspiration_window(Score previousScore, Depth depth, SearchState *search_state, ThreadContext *thread_ctx, Move *pv_move);
 void *iterative_deepening(void *arg);
 void *main_search(void *arg);
 bool should_stop(ThreadContext *thread_ctx);
