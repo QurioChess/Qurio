@@ -15,9 +15,11 @@
 #include "transposition_table.h"
 #include "types.h"
 
-
 static const Depth ASPIRATION_WINDOW_DEPTH = 3;
 static const Score ASPIRATION_WINDOW_HALF_DELTA = 25;
+
+static const Depth RFP_DEPTH = 4;
+static const Score RFP_DEPTH_SCALING = 100;
 
 typedef struct
 {
