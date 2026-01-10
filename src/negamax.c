@@ -76,6 +76,20 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     if (depth == 0)
         return quiescence(pos, alpha, beta, search_state, thread_ctx);
 
+    bool is_root = search_state->ply == 0;
+    bool is_pv = is_root || (beta - alpha > 1);
+
+    if (!is_pv) {
+        // Reverse futility pruning
+        bool is_check = is_in_check(pos, pos.side);
+        if (!is_check) {
+            Score static_eval = evaluate(pos);
+            if ((depth < RFP_DEPTH) && (static_eval >= beta + RFP_DEPTH_SCALING * (Score)depth)) {
+                return static_eval;
+            }
+        }
+    }
+
     int legal_moves_count = 0;
     MoveList move_list = {.count = 0};
     generate_pseudo_legals(pos, &move_list, false);
@@ -216,10 +230,9 @@ Score aspiration_window(Score previousScore, Depth depth, SearchState *search_st
     Score delta = beta - alpha;
     Score current_score = INVALID_SCORE;
 
-    for (;;)
-    {
+    for (;;) {
         alpha = (alpha < -ALPHA_BETA_BOUND) ? -ALPHA_BETA_BOUND : alpha;
-        beta = (beta > ALPHA_BETA_BOUND) ? ALPHA_BETA_BOUND: beta;
+        beta = (beta > ALPHA_BETA_BOUND) ? ALPHA_BETA_BOUND : beta;
 
         search_state->ply = 0;
         search_state->hash_stack[0] = thread_ctx->pos.hash;
@@ -235,16 +248,15 @@ Score aspiration_window(Score previousScore, Depth depth, SearchState *search_st
         delta = delta * 2;
         // fail-low (score <= alpha): decrease alpha
         if (current_score <= alpha) {
-            
-            alpha = beta - delta;            
+
+            alpha = beta - delta;
         }
         // fail-high (beta <= score): increase beta
-        else
-        {
+        else {
             beta = alpha + delta;
         }
     }
-    
+
     return current_score;
 }
 
