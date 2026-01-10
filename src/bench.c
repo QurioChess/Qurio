@@ -21,6 +21,7 @@ void bench() {
         uint64_t start_time = get_time_ms();
         compute_time_to_search(&engine.search_ctx.tm, start_time, time, inc, movestogo, use_time_control);
 
+        printf("Searching (%i): %s\n", i, BENCH_FENS[i]);
         start_search(&engine, depth);
         wait_search(&engine);
 

@@ -204,15 +204,58 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
     return best_value;
 }
 
+Score aspiration_window(Score previousScore, Depth depth, SearchState *search_state, ThreadContext *thread_ctx, Move *pv_move) {
+    if (depth < ASPIRATION_WINDOW_DEPTH) {
+        search_state->ply = 0;
+        search_state->hash_stack[0] = thread_ctx->pos.hash;
+        return negamax(thread_ctx->pos, -ALPHA_BETA_BOUND, +ALPHA_BETA_BOUND, depth, search_state, thread_ctx, pv_move);
+    }
+
+    Score alpha = previousScore - ASPIRATION_WINDOW_HALF_DELTA;
+    Score beta = previousScore + ASPIRATION_WINDOW_HALF_DELTA;
+    Score delta = beta - alpha;
+    Score current_score = INVALID_SCORE;
+
+    for (;;)
+    {
+        alpha = (alpha < -ALPHA_BETA_BOUND) ? -ALPHA_BETA_BOUND : alpha;
+        beta = (beta > ALPHA_BETA_BOUND) ? ALPHA_BETA_BOUND: beta;
+
+        search_state->ply = 0;
+        search_state->hash_stack[0] = thread_ctx->pos.hash;
+        current_score = negamax(thread_ctx->pos, alpha, beta, depth, search_state, thread_ctx, pv_move);
+
+        if ((current_score == INVALID_SCORE) || (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed)))
+            break;
+
+        // Aspiration window in bound search is valid
+        if ((alpha < current_score) && (current_score < beta))
+            break;
+
+        delta = delta * 2;
+        // fail-low (score <= alpha): decrease alpha
+        if (current_score <= alpha) {
+            
+            alpha = beta - delta;            
+        }
+        // fail-high (beta <= score): increase beta
+        else
+        {
+            beta = alpha + delta;
+        }
+    }
+    
+    return current_score;
+}
+
 void *iterative_deepening(void *arg) {
     ThreadContext *thread_ctx = (ThreadContext *)arg;
     SearchState search_state;
+    Score current_score = INVALID_SCORE;
     for (Depth d = 1;; d++) {
         Move current_best;
-        search_state.ply = 0;
-        search_state.hash_stack[0] = thread_ctx->pos.hash;
 
-        Score current_score = negamax(thread_ctx->pos, -MATE_SCORE, +MATE_SCORE, d, &search_state, thread_ctx, &current_best);
+        current_score = aspiration_window(current_score, d, &search_state, thread_ctx, &current_best);
 
         if ((current_score == INVALID_SCORE) || (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed)))
             break;

@@ -13,8 +13,8 @@ Once the fundamentals are implemented (negamax + alpha-beta pruning), the engine
 - [x] Quiescence Search
 - [x] Transposition Table (sort TT move first)
 - [x] Butterfly history heuristic
-- [ ] PVS
-- [ ] Aspiration windows
+- [x] PVS
+- [x] Aspiration windows
 - [ ] RFP
 - [ ] Null Move Pruning (NMP)
 - [ ] Late Move Reductions (LMR)
