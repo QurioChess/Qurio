@@ -211,8 +211,8 @@ Score aspiration_window(Score previousScore, Depth depth, SearchState *search_st
         return negamax(thread_ctx->pos, -ALPHA_BETA_BOUND, +ALPHA_BETA_BOUND, depth, search_state, thread_ctx, pv_move);
     }
 
-    Score alpha = previousScore - ASPIRATION_WINDOW_WIDE;
-    Score beta = previousScore + ASPIRATION_WINDOW_WIDE;
+    Score alpha = previousScore - ASPIRATION_WINDOW_HALF_DELTA;
+    Score beta = previousScore + ASPIRATION_WINDOW_HALF_DELTA;
     Score delta = beta - alpha;
     Score current_score = INVALID_SCORE;
 

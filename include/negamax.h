@@ -17,7 +17,7 @@
 
 
 static const Depth ASPIRATION_WINDOW_DEPTH = 3;
-static const Score ASPIRATION_WINDOW_WIDE = 100;
+static const Score ASPIRATION_WINDOW_HALF_DELTA = 25;
 
 typedef struct
 {
