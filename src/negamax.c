@@ -58,6 +58,10 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         return DRAW_SCORE;
     }
 
+    if (search_state->ply >= MAX_PLY - 1) {
+        return evaluate(pos);
+    }
+
     TTEntry *entry = probe_tt(thread_ctx->table, pos.hash);
     Move tt_move = INVALID_MOVE;
     if (entry != NULL) {
@@ -162,6 +166,10 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
     if (should_stop(thread_ctx))
         return INVALID_SCORE;
     thread_ctx->nodes++;
+
+    if (search_state->ply >= MAX_PLY - 1) {
+        return evaluate(pos);
+    }
 
     TTEntry *entry = probe_tt(thread_ctx->table, pos.hash);
     Move tt_move = INVALID_MOVE;

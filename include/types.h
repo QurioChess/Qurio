@@ -7,6 +7,7 @@ static const int NRANKS = 8;
 static const int NFILES = 8;
 #define MAX_DEPTH 255
 #define MAX_GAME_LENGTH 1024
+#define MAX_PLY 256
 
 typedef uint64_t U64;
 
@@ -113,7 +114,7 @@ enum CastlingRightConst {
 enum ScoreConst {
     DRAW_SCORE = 0,
     MATE_SCORE = INT_MAX - 32768,
-    MATE_SCORE_BOUNDARY = INT_MAX - 32768 - MAX_DEPTH,
+    MATE_SCORE_BOUNDARY = INT_MAX - 32768 - MAX_PLY,
     ALPHA_BETA_BOUND = INT_MAX - 32768 + 1,
     INVALID_SCORE = INT_MIN
 };

@@ -23,7 +23,7 @@ static const Score RFP_DEPTH_SCALING = 100;
 
 typedef struct
 {
-    U64 hash_stack[MAX_DEPTH];
+    U64 hash_stack[MAX_PLY];
     HalfMove ply;
 } SearchState;
 
