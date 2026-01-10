@@ -6,6 +6,8 @@
 #include "move.h"
 #include "types.h"
 
+#define MAX_HASH 2048
+
 typedef uint8_t EntryType;
 
 enum EntryTypeConst {
@@ -35,4 +37,5 @@ Score score_from_tt(Score tt_score, HalfMove ply);
 Score score_to_tt(Score score, HalfMove ply);
 
 void init_tt(TT *table, size_t megabytes);
+void resize_tt(TT *table, size_t megabytes);
 void clear_tt(TT *table);

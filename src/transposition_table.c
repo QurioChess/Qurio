@@ -38,13 +38,29 @@ Score score_to_tt(Score score, HalfMove ply) {
 }
 
 void init_tt(TT *table, size_t megabytes) {
+    table->underlying = NULL;
+    table->size = 0;
+    resize_tt(table, megabytes);
+}
+
+void resize_tt(TT *table, size_t megabytes) {
     size_t bytes = megabytes * 1024 * 1024;
-    size_t size = bytes / sizeof(TTEntry);
+    size_t new_size = bytes / sizeof(TTEntry);
+    TTEntry *new_entries = malloc(sizeof(TTEntry) * new_size);
+    
+    if (new_entries == NULL) {
+        printf("info string Error: Could not allocate %zu MB for TT\n", megabytes);
+        return;
+    }
 
-    printf(">>> Creating tt with: %zu entries\n", size);
-    table->underlying = malloc(sizeof(TTEntry) * size);
-    table->size = size;
+    if (table->underlying) {
+        free(table->underlying);
+    }
 
+    table->underlying = new_entries;
+    table->size = new_size;
+
+    printf("info string TT set to %zu entries (%zu MB)\n", new_size, megabytes);
     clear_tt(table);
 }
 

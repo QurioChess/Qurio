@@ -26,6 +26,7 @@ void command_stop(EngineState *engine);
 void command_uci();
 void command_ucinewgame(EngineState *engine);
 void command_isready();
+void command_setoption(EngineState *engine, char *setoption_options);
 
 void command_perft(EngineState *engine, char *perft_options);
 void command_pprint(EngineState *engine);

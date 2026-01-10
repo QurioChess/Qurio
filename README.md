@@ -15,7 +15,7 @@ Once the fundamentals are implemented (negamax + alpha-beta pruning), the engine
 - [x] Butterfly history heuristic
 - [x] PVS
 - [x] Aspiration windows
-- [ ] RFP
+- [x] RFP
 - [ ] Null Move Pruning (NMP)
 - [ ] Late Move Reductions (LMR)
 - [ ] Killer moves

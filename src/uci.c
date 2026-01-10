@@ -138,6 +138,8 @@ void command_uci() {
     printf("id name Qurio\n");
     printf("id author Qurio\n");
     printf("uciok\n");
+    printf("option name Hash type spin default 8 min 1 max %i\n", MAX_HASH);
+    printf("option name Threads type spin default 1 min 1 max %i\n", MAX_THREADS);
     fflush(stdout);
 }
 
@@ -168,6 +170,28 @@ void command_perft(EngineState *engine, char *perft_options) {
 
 void command_pprint(EngineState *engine) {
     print_position(engine->pos);
+}
+
+void command_setoption(EngineState *engine, char *setoption_options) {
+    char *name_ptr = strstr(setoption_options, "name ");
+    char *value_ptr = strstr(setoption_options, "value ");
+
+    if (!name_ptr || !value_ptr)
+        return;
+
+    name_ptr += 5;
+    value_ptr += 6;
+
+    if (strncmp(name_ptr, "Hash", 4) == 0) {
+        int val = atoi(value_ptr);
+        if (val < 1)
+            val = 1;
+        if (val > MAX_HASH)
+            val = MAX_HASH;
+        resize_tt(&engine->table, (size_t)val);
+    } else if (strncmp(name_ptr, "Threads", 7) == 0) {
+        // Multi threading not available: do nothing
+    }
 }
 
 void main_loop() {
@@ -214,17 +238,25 @@ void main_loop() {
         }
 
         if (strncmp(line, "perft", 5) == 0) {
+            command_stop(&engine);
             command_perft(&engine, line + 6);
             continue;
         }
 
         if (strncmp(line, "bench", 5) == 0) {
+            command_stop(&engine);
             bench();
             continue;
         }
 
         if (strncmp(line, "pprint", 6) == 0) {
             command_pprint(&engine);
+            continue;
+        }
+
+        if (strncmp(line, "setoption", 9) == 0) {
+            command_stop(&engine);
+            command_setoption(&engine, line + 10);
             continue;
         }
     }
