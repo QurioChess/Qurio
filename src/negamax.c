@@ -124,8 +124,8 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     }
 
     if (!should_stop(thread_ctx)) {
-        EntryType type = (best_value >= beta) ? UPPER_BOUND : (best_value > initial_alpha) ? EXACT
-                                                                                           : LOWER_BOUND;
+        EntryType type = (best_value >= beta) ? LOWER_BOUND : (best_value > initial_alpha) ? EXACT
+                                                                                           : UPPER_BOUND;
         store_tt(thread_ctx->table, pos.hash, depth, best_move, score_to_tt(best_value, search_state->ply), type);
     }
 
