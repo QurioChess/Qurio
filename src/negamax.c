@@ -54,6 +54,10 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         return INVALID_SCORE;
     thread_ctx->nodes++;
 
+    if (search_state->ply >= MAX_PLY - 1) {
+        return evaluate(pos);
+    }
+
     if (is_repetition(search_state, thread_ctx->history, pos.halfmove_clock)) {
         return DRAW_SCORE;
     }
@@ -106,8 +110,8 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         if (is_in_check(next_pos, next_pos.side ^ 1))
             continue;
         legal_moves_count++;
-        search_state->hash_stack[++search_state->ply] = next_pos.hash;
 
+        search_state->hash_stack[++search_state->ply] = next_pos.hash;
         int value = INVALID_SCORE;
         // First move: full search
         if (legal_moves_count == 1) {
@@ -163,6 +167,10 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
         return INVALID_SCORE;
     thread_ctx->nodes++;
 
+    if (search_state->ply >= MAX_PLY - 1) {
+        return evaluate(pos);
+    }
+
     TTEntry *entry = probe_tt(thread_ctx->table, pos.hash);
     Move tt_move = INVALID_MOVE;
     if (entry != NULL) {
@@ -182,9 +190,6 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
         return static_eval;
     if (static_eval > alpha)
         alpha = static_eval;
-
-    if (search_state->ply > MAX_DEPTH)
-        return static_eval;
 
     MoveList move_list = {.count = 0};
     generate_pseudo_legals(pos, &move_list, true);
