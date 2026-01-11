@@ -137,9 +137,9 @@ void command_go(EngineState *engine, char *go_options) {
 void command_uci() {
     printf("id name Qurio\n");
     printf("id author Qurio\n");
-    printf("uciok\n");
     printf("option name Hash type spin default 8 min 1 max %i\n", MAX_HASH);
     printf("option name Threads type spin default 1 min 1 max %i\n", MAX_THREADS);
+    printf("uciok\n");
     fflush(stdout);
 }
 
