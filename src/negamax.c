@@ -84,12 +84,31 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     bool is_pv = is_root || (beta - alpha > 1);
 
     if (!is_pv) {
-        // Reverse futility pruning
         bool is_check = is_in_check(pos, pos.side);
         if (!is_check) {
+            // Reverse futility pruning
             Score static_eval = evaluate(pos);
             if ((depth < RFP_DEPTH) && (static_eval >= beta + RFP_DEPTH_SCALING * (Score)depth)) {
                 return static_eval;
+            }
+
+            // Null move pruning
+            if (!search_state->last_move_is_null && has_non_pawn(pos, pos.side)) {
+                Depth depth_reduction = (depth > NMP_DEPTH_REDUCTION) ? NMP_DEPTH_REDUCTION : depth;
+
+                Position next_pos = pos;
+                make_null_move(&next_pos);
+
+                search_state->hash_stack[++search_state->ply] = next_pos.hash;
+                search_state->last_move_is_null = true;
+
+                Score nmp_value = -negamax(next_pos, -beta, -beta + 1, depth - depth_reduction, search_state, thread_ctx, NULL);
+
+                search_state->ply--;
+                search_state->last_move_is_null = false;
+
+                if (nmp_value >= beta)
+                    return nmp_value;
             }
         }
     }
@@ -112,6 +131,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         legal_moves_count++;
 
         search_state->hash_stack[++search_state->ply] = next_pos.hash;
+        search_state->last_move_is_null = false;
         int value = INVALID_SCORE;
         // First move: full search
         if (legal_moves_count == 1) {
@@ -205,6 +225,7 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
             continue;
 
         search_state->hash_stack[++search_state->ply] = next_pos.hash;
+        search_state->last_move_is_null = false;
         int value = -quiescence(next_pos, -beta, -alpha, search_state, thread_ctx);
         search_state->ply--;
 
@@ -227,6 +248,7 @@ Score aspiration_window(Score previousScore, Depth depth, SearchState *search_st
     if (depth < ASPIRATION_WINDOW_DEPTH) {
         search_state->ply = 0;
         search_state->hash_stack[0] = thread_ctx->pos.hash;
+        search_state->last_move_is_null = false;
         return negamax(thread_ctx->pos, -ALPHA_BETA_BOUND, +ALPHA_BETA_BOUND, depth, search_state, thread_ctx, pv_move);
     }
 
@@ -241,6 +263,7 @@ Score aspiration_window(Score previousScore, Depth depth, SearchState *search_st
 
         search_state->ply = 0;
         search_state->hash_stack[0] = thread_ctx->pos.hash;
+        search_state->last_move_is_null = false;
         current_score = negamax(thread_ctx->pos, alpha, beta, depth, search_state, thread_ctx, pv_move);
 
         if ((current_score == INVALID_SCORE) || (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed)))

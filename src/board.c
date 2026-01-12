@@ -491,3 +491,25 @@ MoveFlags classify_move(Position pos, Move move) {
 
     return flags;
 }
+
+bool has_non_pawn(Position pos, Color side) {
+    if (pos.pieces[side][KNIGHT])
+        return true;
+    if (pos.pieces[side][BISHOP])
+        return true;
+    if (pos.pieces[side][ROOK])
+        return true;
+    if (pos.pieces[side][QUEEN])
+        return true;
+    return false;
+}
+
+void make_null_move(Position *pos) {
+    if (pos->enpassant != NOSQUARE) {
+        pos->hash ^= get_enpassant_zkey(pos->enpassant % NFILES);
+    }
+    pos->enpassant = NOSQUARE;
+    pos->side = pos->side ^ 1;
+    pos->hash ^= get_side_zkey();
+    pos->halfmove_clock = 0;
+}
