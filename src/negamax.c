@@ -148,6 +148,10 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
             // zw search
             value = -negamax(next_pos, -alpha - 1, -alpha, depth - 1 - reduction, search_state, thread_ctx, NULL);
 
+            if ((reduction > 0) && (value > alpha)) {
+                value = -negamax(next_pos, -alpha - 1, -alpha, depth - 1, search_state, thread_ctx, NULL);
+            }
+
             if (value > alpha && value < beta) {
                 // research full window
                 value = -negamax(next_pos, -beta, -alpha, depth - 1, search_state, thread_ctx, NULL);
