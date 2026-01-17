@@ -1,6 +1,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include <math.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -23,6 +24,9 @@ static const Score RFP_DEPTH_SCALING = 100;
 
 static const Depth NMP_DEPTH_REDUCTION = 3;
 
+static const Depth LMR_DEPTH = 3;
+static const int LMR_MOVE_COUNT = 3;
+
 typedef struct
 {
     U64 hash_stack[MAX_PLY];
@@ -39,3 +43,5 @@ bool should_stop(ThreadContext *thread_ctx);
 bool is_repetition(SearchState *search_state, GameHistory *history, HalfMove limit);
 
 void update_quiet_history(Position pos, Move move, Depth depth, ThreadContext *thread_ctx);
+
+void init_lmr_table();

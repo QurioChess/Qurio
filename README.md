@@ -17,7 +17,7 @@ Once the fundamentals are implemented (negamax + alpha-beta pruning), the engine
 - [x] Aspiration windows
 - [x] RFP
 - [x] Null Move Pruning (NMP)
-- [ ] Late Move Reductions (LMR)
+- [x] Late Move Reductions (LMR)
 - [ ] Killer moves
 - [ ] Late Move Pruning (LMP)
 - [ ] Futility pruning
