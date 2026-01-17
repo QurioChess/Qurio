@@ -21,10 +21,13 @@ static const Score ASPIRATION_WINDOW_HALF_DELTA = 25;
 static const Depth RFP_DEPTH = 4;
 static const Score RFP_DEPTH_SCALING = 100;
 
+static const Depth NMP_DEPTH_REDUCTION = 3;
+
 typedef struct
 {
     U64 hash_stack[MAX_PLY];
     HalfMove ply;
+    bool last_move_is_null;
 } SearchState;
 
 Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *search_state, ThreadContext *thread_ctx, Move *pv_move);

@@ -33,4 +33,7 @@ void set_start_position(Position *pos);
 void parse_fen(Position *pos, char *fen);
 
 void make_move(Position *pos, Move move);
+void make_null_move(Position *pos);
 MoveFlags classify_move(Position pos, Move move);
+
+bool has_non_pawn(Position pos, Color side);
