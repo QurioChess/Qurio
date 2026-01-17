@@ -123,6 +123,7 @@ void command_go(EngineState *engine, char *go_options) {
             token = strtok(NULL, " ");
             if (token != NULL) {
                 time = (uint64_t)atoi(token);
+                movestogo = 1;
                 use_time_control = true;
             }
         }
