@@ -370,7 +370,7 @@ void init_lmr_table() {
                 LMR_REDUCTION_TABLE[d][m] = 0;
                 continue;
             }
-            double theorical_reduction = 1.0 + 0.5 * log(d) * log(m);
+            double theorical_reduction = LMR_BASE_REDUCTION + LMR_SCALING * log(d) * log(m);
             int reduction = (int)theorical_reduction;
 
             // next_depth = d - reduction - 1 >= 0

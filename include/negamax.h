@@ -26,6 +26,8 @@ static const Depth NMP_DEPTH_REDUCTION = 3;
 
 static const Depth LMR_DEPTH = 3;
 static const int LMR_MOVE_COUNT = 3;
+static const double LMR_BASE_REDUCTION = 1.0;
+static const double LMR_SCALING = 0.5;
 
 typedef struct
 {
