@@ -37,7 +37,7 @@ bool is_repetition(SearchState *search_state, GameHistory *history, HalfMove lim
     return false;
 }
 
-void update_quiet_history(Position pos, Move move, Depth depth, ThreadContext *thread_ctx) {
+void update_quiet_ordering(Position pos, Move move, Depth depth, ThreadContext *thread_ctx, SearchState *search_state) {
     MoveFlags flags = classify_move(pos, move);
     if (!(flags & (FLAG_CAPTURE | FLAG_ENPASSANT | FLAG_PROMOTION))) {
         Color stm = pos.side;
@@ -47,6 +47,11 @@ void update_quiet_history(Position pos, Move move, Depth depth, ThreadContext *t
 
         if (thread_ctx->persistent.quiet_history[stm][from][to] > MAX_QUIET_HISTORY) {
             thread_ctx->persistent.quiet_history[stm][from][to] = MAX_QUIET_HISTORY;
+        }
+
+        if (search_state->killers[search_state->ply].primary != move) {
+            search_state->killers[search_state->ply].secondary = search_state->killers[search_state->ply].primary;
+            search_state->killers[search_state->ply].primary = move;
         }
     }
 }
@@ -81,6 +86,9 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
 
     if (depth == 0)
         return quiescence(pos, alpha, beta, search_state, thread_ctx);
+
+    search_state->killers[search_state->ply + 1].primary = INVALID_MOVE;
+    search_state->killers[search_state->ply + 1].secondary = INVALID_MOVE;
 
     bool is_root = search_state->ply == 0;
     bool is_pv = is_root || (beta - alpha > 1);
@@ -118,7 +126,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     int legal_moves_count = 0;
     MoveList move_list = {.count = 0};
     generate_pseudo_legals(pos, &move_list, false);
-    score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history);
+    score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history, search_state->killers[search_state->ply]);
 
     Score best_value = -MATE_SCORE;
     Score initial_alpha = alpha;
@@ -171,7 +179,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
             alpha = value;
 
             if (alpha >= beta) {
-                update_quiet_history(pos, move, depth, thread_ctx);
+                update_quiet_ordering(pos, move, depth, thread_ctx, search_state);
                 break;
             }
         }
@@ -225,7 +233,7 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
 
     MoveList move_list = {.count = 0};
     generate_pseudo_legals(pos, &move_list, true);
-    score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history);
+    score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history, search_state->killers[search_state->ply]);
 
     Score best_value = static_eval;
     for (int i = 0; i < move_list.count; i++) {
@@ -304,9 +312,12 @@ void *iterative_deepening(void *arg) {
     ThreadContext *thread_ctx = (ThreadContext *)arg;
     SearchState search_state;
     Score current_score = INVALID_SCORE;
+
+    search_state.killers[0].primary = INVALID_MOVE;
+    search_state.killers[0].secondary = INVALID_MOVE;
+
     for (Depth d = 1;; d++) {
         Move current_best;
-
         current_score = aspiration_window(current_score, d, &search_state, thread_ctx, &current_best);
 
         if ((current_score == INVALID_SCORE) || (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed)))

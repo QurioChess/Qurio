@@ -4,12 +4,22 @@ MoveScore mvv_lva(PieceType victim, PieceType attacker) {
     return VICTIM_SCALING * (MoveScore)victim - (MoveScore)attacker;
 }
 
-void score_moves(Position pos, MoveList *move_list, Move tt_move, ButterflyHistory *quiet_history) {
+void score_moves(Position pos, MoveList *move_list, Move tt_move, ButterflyHistory *quiet_history, KillerPair killers) {
     for (int i = 0; i < move_list->count; i++) {
         Move move = move_list->moves[i];
 
         if (move == tt_move) {
             move_list->scores[i] = TT_MOVE;
+            continue;
+        }
+
+        if (move == killers.primary) {
+            move_list->scores[i] = KILLER1;
+            continue;
+        }
+
+        if (move == killers.secondary) {
+            move_list->scores[i] = KILLER2;
             continue;
         }
 
