@@ -1,5 +1,7 @@
 #include "negamax.h"
 
+Depth LMR_REDUCTION_TABLE[MAX_DEPTH][MAX_MOVES];
+
 bool should_stop(ThreadContext *thread_ctx) {
     if (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed))
         return true;
@@ -133,12 +135,22 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         search_state->hash_stack[++search_state->ply] = next_pos.hash;
         search_state->last_move_is_null = false;
         int value = INVALID_SCORE;
+
+        Depth reduction = 0;
+        if ((legal_moves_count > LMR_MOVE_COUNT) && (depth >= LMR_DEPTH)) {
+            reduction = LMR_REDUCTION_TABLE[depth][legal_moves_count];
+        }
+
         // First move: full search
         if (legal_moves_count == 1) {
             value = -negamax(next_pos, -beta, -alpha, depth - 1, search_state, thread_ctx, NULL);
         } else {
             // zw search
-            value = -negamax(next_pos, -alpha - 1, -alpha, depth - 1, search_state, thread_ctx, NULL);
+            value = -negamax(next_pos, -alpha - 1, -alpha, depth - 1 - reduction, search_state, thread_ctx, NULL);
+
+            if ((reduction > 0) && (value > alpha)) {
+                value = -negamax(next_pos, -alpha - 1, -alpha, depth - 1, search_state, thread_ctx, NULL);
+            }
 
             if (value > alpha && value < beta) {
                 // research full window
@@ -338,4 +350,25 @@ void *main_search(void *arg) {
     }
 
     return NULL;
+}
+
+void init_lmr_table() {
+    for (int d = 0; d < MAX_DEPTH; d++) {
+        for (int m = 0; m < MAX_MOVES; m++) {
+            if ((d == 0) || (m == 0)) {
+                LMR_REDUCTION_TABLE[d][m] = 0;
+                continue;
+            }
+            double theorical_reduction = 1.0 + 0.5 * log(d) * log(m);
+            int reduction = (int)theorical_reduction;
+
+            // next_depth = d - reduction - 1 >= 0
+            // reduction <= d - 1
+            if (reduction >= d) {
+                reduction = d - 1;
+            }
+
+            LMR_REDUCTION_TABLE[d][m] = (Depth)reduction;
+        }
+    }
 }

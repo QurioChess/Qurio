@@ -1,12 +1,14 @@
 #include <stdio.h>
 
 #include "bench.h"
+#include "negamax.h"
 #include "uci.h"
 #include "zobrist.h"
 
 int main(int argc, char *argv[]) {
     printf("Qurio - Chess engine\n");
     init_zobrist();
+    init_lmr_table();
 
     if (argc > 1 && strcmp(argv[1], "bench") == 0) {
         bench();
