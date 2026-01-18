@@ -29,6 +29,10 @@ static const int LMR_MOVE_COUNT = 3;
 static const double LMR_BASE_REDUCTION = 1.0;
 static const double LMR_SCALING = 0.5;
 
+static const int LMP_CONSTANT = 3;
+static const int LMP_LINEAR = 4;
+static const int LMP_QUADRATIC = 3;
+
 typedef struct
 {
     U64 hash_stack[MAX_PLY];

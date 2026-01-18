@@ -1,6 +1,7 @@
 #include "negamax.h"
 
 Depth LMR_REDUCTION_TABLE[MAX_DEPTH][MAX_MOVES];
+int LMP_TABLE[MAX_DEPTH];
 
 bool should_stop(ThreadContext *thread_ctx) {
     if (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed))
@@ -124,6 +125,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     }
 
     int legal_moves_count = 0;
+    bool skip_quiet = false;
     MoveList move_list = {.count = 0};
     generate_pseudo_legals(pos, &move_list, false);
     score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history, search_state->killers[search_state->ply]);
@@ -139,6 +141,17 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         if (is_in_check(next_pos, next_pos.side ^ 1))
             continue;
         legal_moves_count++;
+
+        if (!skip_quiet && (legal_moves_count > LMP_TABLE[depth])) {
+            skip_quiet = true;
+        }
+
+        if (skip_quiet) {
+            MoveFlags flags = classify_move(pos, move);
+            if (!(flags & (FLAG_CAPTURE | FLAG_ENPASSANT | FLAG_PROMOTION))) {
+                continue;
+            }
+        }
 
         search_state->hash_stack[++search_state->ply] = next_pos.hash;
         search_state->last_move_is_null = false;
@@ -381,5 +394,11 @@ void init_lmr_table() {
 
             LMR_REDUCTION_TABLE[d][m] = (Depth)reduction;
         }
+    }
+}
+
+void init_lmp_table() {
+    for (int d = 0; d < MAX_DEPTH; d++) {
+        LMP_TABLE[d] = LMP_CONSTANT + LMP_LINEAR * d + LMP_QUADRATIC * d * d;
     }
 }
