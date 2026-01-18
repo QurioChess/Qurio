@@ -30,6 +30,7 @@ static const int LMR_MOVE_COUNT = 3;
 typedef struct
 {
     U64 hash_stack[MAX_PLY];
+    KillerPair killers[MAX_PLY];
     HalfMove ply;
     bool last_move_is_null;
 } SearchState;
@@ -42,6 +43,6 @@ void *main_search(void *arg);
 bool should_stop(ThreadContext *thread_ctx);
 bool is_repetition(SearchState *search_state, GameHistory *history, HalfMove limit);
 
-void update_quiet_history(Position pos, Move move, Depth depth, ThreadContext *thread_ctx);
+void update_quiet_ordering(Position pos, Move move, Depth depth, ThreadContext *thread_ctx, SearchState *search_state);
 
 void init_lmr_table();
