@@ -399,7 +399,8 @@ void init_lmr_table() {
 
 void init_lmp_table() {
     for (int d = 0; d < MAX_DEPTH; d++) {
-        LMP_TABLE[d] = LMP_CONSTANT + LMP_LINEAR * d + LMP_QUADRATIC * d * d;
+        double theorical_threshold = LMP_CONSTANT + LMP_LINEAR * d + LMP_QUADRATIC * d * d;
+        LMP_TABLE[d] = (int)theorical_threshold;
     }
 }
 
