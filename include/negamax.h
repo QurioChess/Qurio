@@ -30,8 +30,8 @@ static const double LMR_BASE_REDUCTION = 1.0;
 static const double LMR_SCALING = 0.5;
 
 static const int LMP_CONSTANT = 4;
-static const int LMP_LINEAR = 2;
-static const int LMP_QUADRATIC = 0;
+static const int LMP_LINEAR = 0;
+static const int LMP_QUADRATIC = 1;
 
 typedef struct
 {
@@ -52,3 +52,5 @@ bool is_repetition(SearchState *search_state, GameHistory *history, HalfMove lim
 void update_quiet_ordering(Position pos, Move move, Depth depth, ThreadContext *thread_ctx, SearchState *search_state);
 
 void init_lmr_table();
+void init_lmp_table();
+void init_negamax_tables();

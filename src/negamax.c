@@ -402,3 +402,8 @@ void init_lmp_table() {
         LMP_TABLE[d] = LMP_CONSTANT + LMP_LINEAR * d + LMP_QUADRATIC * d * d;
     }
 }
+
+void init_negamax_tables() {
+    init_lmr_table();
+    init_lmp_table();
+}
