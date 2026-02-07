@@ -94,7 +94,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     bool is_root = search_state->ply == 0;
     bool is_pv = is_root || (beta - alpha > 1);
     bool is_check = is_in_check(pos, pos.side);
-
+    
     if (!is_pv) {
         if (!is_check) {
             // Reverse futility pruning
@@ -147,7 +147,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
 
         if (is_quiet) {
             legal_quiet_count++;
-            if (!is_check && (legal_quiet_count > LMP_TABLE[depth])) {
+            if ((!is_check) && (!is_pv) && (legal_quiet_count > LMP_TABLE[depth])) {
                 continue;
             }
         }
