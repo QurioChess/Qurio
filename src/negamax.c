@@ -125,6 +125,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     }
 
     int legal_moves_count = 0;
+    int legal_quiet_count = 0;
     bool skip_quiet = false;
     MoveList move_list = {.count = 0};
     generate_pseudo_legals(pos, &move_list, false);
@@ -142,15 +143,16 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
             continue;
         legal_moves_count++;
 
-        if (!skip_quiet && (legal_moves_count > LMP_TABLE[depth])) {
+        MoveFlags flags = classify_move(pos, move);
+        bool is_quiet = !(flags & (FLAG_CAPTURE | FLAG_ENPASSANT | FLAG_PROMOTION));
+        legal_quiet_count++;
+
+        if (!skip_quiet && (legal_quiet_count > LMP_TABLE[depth])) {
             skip_quiet = true;
         }
 
-        if (skip_quiet) {
-            MoveFlags flags = classify_move(pos, move);
-            if (!(flags & (FLAG_CAPTURE | FLAG_ENPASSANT | FLAG_PROMOTION))) {
-                continue;
-            }
+        if (skip_quiet && is_quiet) {
+            continue;            
         }
 
         search_state->hash_stack[++search_state->ply] = next_pos.hash;
