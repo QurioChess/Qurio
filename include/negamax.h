@@ -31,7 +31,7 @@ static const double LMR_SCALING = 0.5;
 
 static const double LMP_CONSTANT = 4.0;
 static const double LMP_LINEAR = 0.0;
-static const double LMP_QUADRATIC = 2.0;
+static const double LMP_QUADRATIC = 4.0;
 
 typedef struct
 {
