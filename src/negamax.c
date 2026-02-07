@@ -93,9 +93,9 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
 
     bool is_root = search_state->ply == 0;
     bool is_pv = is_root || (beta - alpha > 1);
-    bool is_check = is_in_check(pos, pos.side);
     
     if (!is_pv) {
+        bool is_check = is_in_check(pos, pos.side);
         if (!is_check) {
             // Reverse futility pruning
             Score static_eval = evaluate(pos);
@@ -125,7 +125,6 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     }
 
     int legal_moves_count = 0;
-    int legal_quiet_count = 0;
     MoveList move_list = {.count = 0};
     generate_pseudo_legals(pos, &move_list, false);
     score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history, search_state->killers[search_state->ply]);
@@ -146,8 +145,7 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         bool is_quiet = !(flags & (FLAG_CAPTURE | FLAG_ENPASSANT | FLAG_PROMOTION));
 
         if (is_quiet) {
-            legal_quiet_count++;
-            if ((!is_check) && (!is_pv) && (legal_quiet_count > LMP_TABLE[depth])) {
+            if ((!is_pv) && (legal_moves_count > LMP_TABLE[depth])) {
                 continue;
             }
         }

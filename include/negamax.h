@@ -29,9 +29,9 @@ static const int LMR_MOVE_COUNT = 3;
 static const double LMR_BASE_REDUCTION = 1.0;
 static const double LMR_SCALING = 0.5;
 
-static const double LMP_CONSTANT = 2.0;
+static const double LMP_CONSTANT = 3.0;
 static const double LMP_LINEAR = 0.0;
-static const double LMP_QUADRATIC = 0.9;
+static const double LMP_QUADRATIC = 1.0;
 
 typedef struct
 {
