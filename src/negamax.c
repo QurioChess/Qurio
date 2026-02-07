@@ -126,7 +126,6 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
 
     int legal_moves_count = 0;
     int legal_quiet_count = 0;
-    bool skip_quiet = false;
     MoveList move_list = {.count = 0};
     generate_pseudo_legals(pos, &move_list, false);
     score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history, search_state->killers[search_state->ply]);
@@ -145,14 +144,12 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
 
         MoveFlags flags = classify_move(pos, move);
         bool is_quiet = !(flags & (FLAG_CAPTURE | FLAG_ENPASSANT | FLAG_PROMOTION));
-        legal_quiet_count++;
 
-        if (!skip_quiet && (legal_quiet_count > LMP_TABLE[depth])) {
-            skip_quiet = true;
-        }
-
-        if (skip_quiet && is_quiet) {
-            continue;            
+        if (is_quiet) {
+            legal_quiet_count++;
+            if (legal_quiet_count > LMP_TABLE[depth]) {
+                continue;
+            }
         }
 
         search_state->hash_stack[++search_state->ply] = next_pos.hash;
