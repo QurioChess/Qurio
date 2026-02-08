@@ -116,7 +116,7 @@ enum ScoreConst {
     MATE_SCORE = 4194304,
     MATE_SCORE_BOUNDARY = 4194304 - MAX_PLY,
     ALPHA_BETA_BOUND = 4194304 + 1,
-    INVALID_SCORE = INT_MIN
+    INVALID_SCORE = -INT_MAX
 };
 
 static const char *const PIECE_NAMES[] = {"P", "N", "B", "R", "Q", "K"};

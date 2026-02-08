@@ -8,6 +8,7 @@ void clear_engine(EngineState *engine) {
     for (int i = 0; i < MAX_THREADS; i++) {
         memset(&engine->thread_ctxs[i].persistent, 0, sizeof(PersistentState));
     }
+    engine->search_running = false;
 }
 
 void start_search(EngineState *engine, Depth depth) {

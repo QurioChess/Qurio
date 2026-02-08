@@ -18,13 +18,14 @@ CFLAGS_COMMON := $(CSTD) -I$(INC_DIR) -Wall -Wextra -Wshadow -Wconversion
 CFLAGS_RELEASE := -O3 -march=native -flto -DNDEBUG
 
 # ===== Debug flags =====
-CFLAGS_DEBUG := -O0 -g -DDEBUG
+CFLAGS_DEBUG := -O0 -g -DDEBUG -fsanitize=address,undefined -fno-omit-frame-pointer -fsanitize-address-use-after-scope -fno-optimize-sibling-calls -fno-common
+LDFLAGS_DEBUG := -fsanitize=address,undefined -lpthread
 
 # ===== Profile flags =====
 CFLAGS_PROFILE := -O3 -march=native -g -fno-omit-frame-pointer -DNDEBUG
 
 # ===== Link flags =====
-LDFLAGS := -flto -fuse-ld=lld
+LDFLAGS := -flto -fuse-ld=lld -lpthread
 
 # ===== Default =====
 all: release
@@ -35,7 +36,7 @@ release: $(EXE)
 
 # ===== Debug build =====
 debug: CFLAGS := $(CFLAGS_COMMON) $(CFLAGS_DEBUG)
-debug: LDFLAGS :=
+debug: LDFLAGS := $(LDFLAGS_DEBUG)
 debug: $(EXE)
 
 # ===== Profile build =====
