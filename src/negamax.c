@@ -232,8 +232,9 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
         alpha = static_eval;
 
     MoveList move_list = {.count = 0};
+    KillerPair no_killers = { INVALID_MOVE, INVALID_MOVE };
     generate_pseudo_legals(pos, &move_list, true);
-    score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history, search_state->killers[search_state->ply]);
+    score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history, no_killers);
 
     Score best_value = static_eval;
     for (int i = 0; i < move_list.count; i++) {
