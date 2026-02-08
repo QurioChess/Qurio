@@ -11,7 +11,7 @@ void bench() {
     int movestogo = 0;
 
     uint64_t start = get_time_ms();
-    U64 nodes = 0ULL;
+    uint64_t nodes = 0ULL;
     for (int i = 0; i < NFENS; i++) {
         clear_engine(&engine);
         parse_fen(&engine.pos, BENCH_FENS[i]);

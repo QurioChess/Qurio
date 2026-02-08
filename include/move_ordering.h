@@ -5,6 +5,7 @@
 #include "board.h"
 #include "move.h"
 #include "movegen.h"
+#include "search_stats.h"
 #include "types.h"
 
 typedef MoveScore ButterflyHistory[2][NSQUARES][NSQUARES];
@@ -26,4 +27,7 @@ static const MoveScore VICTIM_SCALING = 6;
 MoveScore mvv_lva(PieceType victim, PieceType attacker);
 
 void score_moves(Position pos, MoveList *move_list, Move tt_move, ButterflyHistory *quiet_history, KillerPair killers);
+#ifdef SEARCH_STATS
+void score_moves_with_stats(Position pos, MoveList *move_list, Move tt_move, ButterflyHistory *quiet_history, KillerPair killers, SearchStats *stats);
+#endif
 Move get_next_move(MoveList *move_list, int index);

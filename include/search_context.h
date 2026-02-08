@@ -7,6 +7,7 @@
 #include "board.h"
 #include "move.h"
 #include "move_ordering.h"
+#include "search_stats.h"
 #include "time_management.h"
 #include "transposition_table.h"
 #include "types.h"
@@ -39,9 +40,13 @@ typedef struct
 
     // Search-Local data
     Position pos;
-    U64 nodes;
+    uint64_t nodes;
     Move best_move;
     Score score;
     Depth depth;
     Depth completed_depth;
+
+#ifdef SEARCH_STATS
+    ThreadStats stats;
+#endif
 } ThreadContext;

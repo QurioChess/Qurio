@@ -12,6 +12,7 @@
 #include "move_ordering.h"
 #include "movegen.h"
 #include "search_context.h"
+#include "search_stats.h"
 #include "time_management.h"
 #include "transposition_table.h"
 #include "types.h"
@@ -35,6 +36,10 @@ typedef struct
     KillerPair killers[MAX_PLY];
     HalfMove ply;
     bool last_move_is_null;
+
+#ifdef SEARCH_STATS
+    SearchStats *current_stats;
+#endif
 } SearchState;
 
 Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *search_state, ThreadContext *thread_ctx, Move *pv_move);

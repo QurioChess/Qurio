@@ -1,4 +1,5 @@
 #include "negamax.h"
+#include "search_stats.h"
 
 Depth LMR_REDUCTION_TABLE[MAX_DEPTH][MAX_MOVES];
 
@@ -46,6 +47,9 @@ void update_quiet_ordering(Position pos, Move move, Depth depth, ThreadContext *
         thread_ctx->persistent.quiet_history[stm][from][to] += (MoveScore)depth * (MoveScore)depth;
 
         if (thread_ctx->persistent.quiet_history[stm][from][to] > MAX_QUIET_HISTORY) {
+#ifdef SEARCH_STATS
+            search_state->current_stats->history_overflow++;
+#endif
             thread_ctx->persistent.quiet_history[stm][from][to] = MAX_QUIET_HISTORY;
         }
 
@@ -60,6 +64,9 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     if (should_stop(thread_ctx))
         return INVALID_SCORE;
     thread_ctx->nodes++;
+#ifdef SEARCH_STATS
+    search_state->current_stats->negamax_nodes++;
+#endif
 
     if (search_state->ply >= MAX_PLY - 1) {
         return evaluate(pos);
@@ -71,15 +78,33 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
 
     TTEntry *entry = probe_tt(thread_ctx->table, pos.hash);
     Move tt_move = INVALID_MOVE;
+#ifdef SEARCH_STATS
+    search_state->current_stats->tt_probes++;
+#endif
     if (entry != NULL) {
+#ifdef SEARCH_STATS
+        search_state->current_stats->tt_hits++;
+#endif
         if ((search_state->ply != 0) && (entry->depth >= depth)) {
             Score tt_score = score_from_tt(entry->score, search_state->ply);
-            if (entry->type == EXACT)
+            if (entry->type == EXACT) {
+#ifdef SEARCH_STATS
+                search_state->current_stats->tt_cutoffs++;
+#endif
                 return tt_score;
-            if ((entry->type == LOWER_BOUND) && (tt_score >= beta))
+            }
+            if ((entry->type == LOWER_BOUND) && (tt_score >= beta)) {
+#ifdef SEARCH_STATS
+                search_state->current_stats->tt_cutoffs++;
+#endif
                 return tt_score;
-            if ((entry->type == UPPER_BOUND) && (tt_score <= alpha))
+            }
+            if ((entry->type == UPPER_BOUND) && (tt_score <= alpha)) {
+#ifdef SEARCH_STATS
+                search_state->current_stats->tt_cutoffs++;
+#endif
                 return tt_score;
+            }
         }
         tt_move = entry->best_move;
     }
@@ -97,13 +122,22 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         bool is_check = is_in_check(pos, pos.side);
         if (!is_check) {
             // Reverse futility pruning
+#ifdef SEARCH_STATS
+            search_state->current_stats->rfp_applied++;
+#endif
             Score static_eval = evaluate(pos);
             if ((depth < RFP_DEPTH) && (static_eval >= beta + RFP_DEPTH_SCALING * (Score)depth)) {
+#ifdef SEARCH_STATS
+                search_state->current_stats->rfp_cutoffs++;
+#endif
                 return static_eval;
             }
 
             // Null move pruning
             if (!search_state->last_move_is_null && has_non_pawn(pos, pos.side)) {
+#ifdef SEARCH_STATS
+                search_state->current_stats->nmp_applied++;
+#endif
                 Depth depth_reduction = (depth > NMP_DEPTH_REDUCTION) ? NMP_DEPTH_REDUCTION : depth;
 
                 Position next_pos = pos;
@@ -117,8 +151,12 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
                 search_state->ply--;
                 search_state->last_move_is_null = false;
 
-                if (nmp_value >= beta)
+                if (nmp_value >= beta) {
+#ifdef SEARCH_STATS
+                    search_state->current_stats->nmp_cutoffs++;
+#endif
                     return nmp_value;
+                }
             }
         }
     }
@@ -126,7 +164,11 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
     int legal_moves_count = 0;
     MoveList move_list = {.count = 0};
     generate_pseudo_legals(pos, &move_list, false);
+#ifdef SEARCH_STATS
+    score_moves_with_stats(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history, search_state->killers[search_state->ply], search_state->current_stats);
+#else
     score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history, search_state->killers[search_state->ply]);
+#endif
 
     Score best_value = -MATE_SCORE;
     Score initial_alpha = alpha;
@@ -147,6 +189,9 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         Depth reduction = 0;
         if ((legal_moves_count > LMR_MOVE_COUNT) && (depth >= LMR_DEPTH)) {
             reduction = LMR_REDUCTION_TABLE[depth][legal_moves_count];
+#ifdef SEARCH_STATS
+            search_state->current_stats->lmr_applied++;
+#endif
         }
 
         // First move: full search
@@ -157,11 +202,17 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
             value = -negamax(next_pos, -alpha - 1, -alpha, depth - 1 - reduction, search_state, thread_ctx, NULL);
 
             if ((reduction > 0) && (value > alpha)) {
+#ifdef SEARCH_STATS
+                search_state->current_stats->lmr_failed_high++;
+#endif
                 value = -negamax(next_pos, -alpha - 1, -alpha, depth - 1, search_state, thread_ctx, NULL);
             }
 
             if (value > alpha && value < beta) {
                 // research full window
+#ifdef SEARCH_STATS
+                search_state->current_stats->pvs_failed_high++;
+#endif
                 value = -negamax(next_pos, -beta, -alpha, depth - 1, search_state, thread_ctx, NULL);
             }
         }
@@ -176,13 +227,26 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         }
 
         if (value > alpha) {
+#ifdef SEARCH_STATS
+            search_state->current_stats->alpha_cutoffs++;
+#endif
             alpha = value;
 
             if (alpha >= beta) {
+#ifdef SEARCH_STATS
+                search_state->current_stats->beta_cutoffs++;
+                if (legal_moves_count == 1) {
+                    search_state->current_stats->first_move_cutoffs++;
+                }
+#endif
                 update_quiet_ordering(pos, move, depth, thread_ctx, search_state);
                 break;
             }
         }
+
+#ifdef SEARCH_STATS
+        search_state->current_stats->negamax_moves++;
+#endif
     }
 
     if (legal_moves_count == 0) {
@@ -197,6 +261,9 @@ Score negamax(Position pos, Score alpha, Score beta, Depth depth, SearchState *s
         EntryType type = (best_value >= beta) ? LOWER_BOUND : (best_value > initial_alpha) ? EXACT
                                                                                            : UPPER_BOUND;
         store_tt(thread_ctx->table, pos.hash, depth, best_move, score_to_tt(best_value, search_state->ply), type);
+#ifdef SEARCH_STATS
+        search_state->current_stats->tt_stores++;
+#endif
     }
 
     return best_value;
@@ -206,6 +273,9 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
     if (should_stop(thread_ctx))
         return INVALID_SCORE;
     thread_ctx->nodes++;
+#ifdef SEARCH_STATS
+    search_state->current_stats->quiescience_nodes++;
+#endif
 
     if (search_state->ply >= MAX_PLY - 1) {
         return evaluate(pos);
@@ -213,14 +283,32 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
 
     TTEntry *entry = probe_tt(thread_ctx->table, pos.hash);
     Move tt_move = INVALID_MOVE;
+#ifdef SEARCH_STATS
+    search_state->current_stats->tt_probes++;
+#endif
     if (entry != NULL) {
+#ifdef SEARCH_STATS
+        search_state->current_stats->tt_hits++;
+#endif
         Score tt_score = score_from_tt(entry->score, search_state->ply);
-        if (entry->type == EXACT)
+        if (entry->type == EXACT) {
+#ifdef SEARCH_STATS
+            search_state->current_stats->tt_cutoffs++;
+#endif
             return tt_score;
-        if ((entry->type == LOWER_BOUND) && (tt_score >= beta))
+        }
+        if ((entry->type == LOWER_BOUND) && (tt_score >= beta)) {
+#ifdef SEARCH_STATS
+            search_state->current_stats->tt_cutoffs++;
+#endif
             return tt_score;
-        if ((entry->type == UPPER_BOUND) && (tt_score <= alpha))
+        }
+        if ((entry->type == UPPER_BOUND) && (tt_score <= alpha)) {
+#ifdef SEARCH_STATS
+            search_state->current_stats->tt_cutoffs++;
+#endif
             return tt_score;
+        }
         tt_move = entry->best_move;
     }
 
@@ -232,7 +320,7 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
         alpha = static_eval;
 
     MoveList move_list = {.count = 0};
-    KillerPair no_killers = { INVALID_MOVE, INVALID_MOVE };
+    KillerPair no_killers = {INVALID_MOVE, INVALID_MOVE};
     generate_pseudo_legals(pos, &move_list, true);
     score_moves(pos, &move_list, tt_move, &thread_ctx->persistent.quiet_history, no_killers);
 
@@ -260,6 +348,9 @@ Score quiescence(Position pos, Score alpha, Score beta, SearchState *search_stat
             if (alpha >= beta)
                 break;
         }
+#ifdef SEARCH_STATS
+        search_state->current_stats->quiescience_moves++;
+#endif
     }
 
     return best_value;
@@ -294,6 +385,10 @@ Score aspiration_window(Score previousScore, Depth depth, SearchState *search_st
         if ((alpha < current_score) && (current_score < beta))
             break;
 
+#ifdef SEARCH_STATS
+        search_state->current_stats->aspiration_failed++;
+#endif
+
         delta = delta * 2;
         // fail-low (score <= alpha): decrease alpha
         if (current_score <= alpha) {
@@ -314,11 +409,22 @@ void *iterative_deepening(void *arg) {
     SearchState search_state;
     Score current_score = INVALID_SCORE;
 
+#ifdef SEARCH_STATS
+    init_search_stats(&thread_ctx->stats.iteration_stats);
+    init_search_stats(&thread_ctx->stats.cumulative_stats);
+#endif
+
     search_state.killers[0].primary = INVALID_MOVE;
     search_state.killers[0].secondary = INVALID_MOVE;
 
     for (Depth d = 1;; d++) {
         Move current_best;
+
+#ifdef SEARCH_STATS
+        reset_search_stats(&thread_ctx->stats.iteration_stats);
+        search_state.current_stats = &thread_ctx->stats.iteration_stats;
+#endif
+
         current_score = aspiration_window(current_score, d, &search_state, thread_ctx, &current_best);
 
         if ((current_score == INVALID_SCORE) || (atomic_load_explicit(&thread_ctx->search_ctx->stop, memory_order_relaxed)))
@@ -341,6 +447,11 @@ void *iterative_deepening(void *arg) {
         print_move(current_best);
         printf("\n");
 
+#ifdef SEARCH_STATS
+        print_iteration_stats(&thread_ctx->stats.iteration_stats, d);
+        merge_search_stats(&thread_ctx->stats.cumulative_stats, &thread_ctx->stats.iteration_stats);
+#endif
+
         if (d == thread_ctx->depth)
             break;
     }
@@ -356,6 +467,11 @@ void *main_search(void *arg) {
         printf("bestmove ");
         print_move(thread_ctx->best_move);
         printf("\n");
+
+#ifdef SEARCH_STATS
+        print_final_stats(&thread_ctx->stats, thread_ctx->completed_depth, thread_ctx->nodes);
+#endif
+
         fflush(stdout);
     } else {
         printf("Search did not succeed\n");

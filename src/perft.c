@@ -1,8 +1,8 @@
 #include "perft.h"
 
-U64 perft(Position pos, int depth) {
+uint64_t perft(Position pos, int depth) {
     MoveList move_list = {.count = 0};
-    U64 nodes = 0ULL;
+    uint64_t nodes = 0ULL;
 
     if (depth == 0)
         return 1ULL;
@@ -33,7 +33,7 @@ void divide_perft(Position pos, int depth) {
     uint64_t start = get_time_ms();
 
     MoveList move_list = {.count = 0};
-    U64 nodes = 0ULL;
+    uint64_t nodes = 0ULL;
 
     generate_pseudo_legals(pos, &move_list, false);
     for (int i = 0; i < move_list.count; i++) {
@@ -52,7 +52,7 @@ void divide_perft(Position pos, int depth) {
         }
 #endif
 
-        U64 subnodes = perft(next_pos, depth - 1);
+        uint64_t subnodes = perft(next_pos, depth - 1);
         print_move(move_list.moves[i]);
         printf(": %" PRIu64 "\n", subnodes);
         nodes += subnodes;

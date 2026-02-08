@@ -73,3 +73,58 @@ Move get_next_move(MoveList *move_list, int index) {
 
     return move_list->moves[index];
 }
+
+#ifdef SEARCH_STATS
+
+void score_moves_with_stats(Position pos, MoveList *move_list, Move tt_move, ButterflyHistory *quiet_history, KillerPair killers, SearchStats *stats) {
+    for (int i = 0; i < move_list->count; i++) {
+        Move move = move_list->moves[i];
+
+        if (move == tt_move) {
+            move_list->scores[i] = TT_MOVE;
+            continue;
+        }
+
+        if (move == killers.primary) {
+            move_list->scores[i] = KILLER1;
+            stats->killer_primary_hits++;
+            continue;
+        }
+
+        if (move == killers.secondary) {
+            move_list->scores[i] = KILLER2;
+            stats->killer_secondary_hits++;
+            continue;
+        }
+
+        Square from = decode_move_from(move);
+        Square to = decode_move_to(move);
+        MoveFlags flags = classify_move(pos, move);
+
+        move_list->scores[i] = 0;
+        if ((flags & FLAG_PROMOTION)) {
+            PromotionType prom = decode_move_promotion(move);
+            move_list->scores[i] += PROMOTION_SCORE + (MoveScore)prom;
+        }
+
+        if ((flags & FLAG_CAPTURE)) {
+            PieceType attacker = get_piece_type(get_piece_on(pos, from));
+            PieceType victim = get_piece_type(get_piece_on(pos, to));
+            move_list->scores[i] += CAPTURE_SCORE + mvv_lva(victim, attacker);
+        }
+
+        if ((flags & FLAG_ENPASSANT)) {
+            move_list->scores[i] += CAPTURE_SCORE;
+        }
+
+        if ((flags & FLAG_CASTLING)) {
+        }
+
+        if ((!(flags & (FLAG_CAPTURE | FLAG_ENPASSANT | FLAG_PROMOTION)))) {
+            Color stm = pos.side;
+            move_list->scores[i] += (*quiet_history)[stm][from][to];
+        }
+    }
+}
+
+#endif
